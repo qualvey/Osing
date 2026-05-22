@@ -10,8 +10,8 @@ import subprocess
 import logging
 from pathlib import Path
 
-from pydbus import SystemBus
-from gi.repository import GLib
+# from pydbus import SystemBus
+# from gi.repository import GLib
 logger = logging.getLogger(__name__)
 
 domain = settings.domain
@@ -260,16 +260,17 @@ class UserService:
                     shutil.copy2(backup_path, self.config_path)
                 except Exception as e:
                     return False,e
-        try:
-            bus = SystemBus()
-            systemd = bus.get(".systemd1")
-            systemd.ReloadUnit(self.service_name, "replace")\
+                #TODO 重写
+        # try:
+        #     bus = SystemBus()
+        #     systemd = bus.get(".systemd1")
+        #     systemd.ReloadUnit(self.service_name, "replace")\
             
-            return True
-        except GLib.Error as e:
-            return False
-        except Exception as e:
-            return False
+        #     return True
+        # except GLib.Error as e:
+        #     return False
+        # except Exception as e:
+        #     return False
         
 if __name__ == "__main__":
     logger.info("正在测试 ServiceManager 的配置校验和重载功能...")
