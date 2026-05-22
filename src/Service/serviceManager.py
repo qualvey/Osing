@@ -106,9 +106,9 @@ class UserService:
              # 3. 写回文件
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 jstyleson.dump(config, f, indent=4, ensure_ascii=False)
-            logger.info(f"✅ [Service] 服务端主配置文件已成功更新。")
-            
             self.reload()
+            
+            logger.info(f"✅ [Service] 服务端主配置文件已成功更新。")
             
         except Exception as e:
             logger.error(f"❌ [Service] 合并写入配置中途崩溃: {e}，正在尝试就地单线救灾...")
@@ -124,7 +124,7 @@ class UserService:
         try:
             if self.bak_path.exists():
                 # 用备份文件强行覆盖掉被污染的 config 文件
-                shutil.move(str(self.bak_path), str(self.config_path))
+                shutil.copy(str(self.bak_path), str(self.config_path))
                 logger.info("✅ [Service] 成功！服务端主配置文件已完好还原。")
             else:
                 logger.warning("⚠️ [Service] 未找到备份文件，可能修改尚未开始，无需还原。")
@@ -289,15 +289,20 @@ class UserService:
             return True
             
         except subprocess.CalledProcessError as e:
-            # 捕获 systemctl 执行失败（退出码不为 0）
+            # 1. 记录底层错误
             logger.error(f"[Panic] sing-box 重载命令执行失败！错误码: {e.returncode}")
             logger.error(f"[Detail] 错误详情: {e.stderr.strip()}")
             
-            # 💡 思考：这里如果重载失败了，要不要也触发一次 self.rollback()？
-            # 建议加上，防止错误的配置残留砸手里
+            # 2. 本地尽力回滚配置文件，防止脏配置留在硬盘上
             logger.warning("[Panic] 正在尝试回滚至上一个稳定配置...")
-            self.rollback()
-            return False
+            try:
+                self.rollback()
+            except Exception as rollback_err:
+                logger.critical(f"[Fatal] 硬盘配置回滚也失败了！: {str(rollback_err)}")
+            
+            # 🎯 3. 核心修复：绝对不要 return False！直接向上抛出自定义异常（或者原样抛出）
+            # from e 可以保持完整的错误堆栈追踪，上层事务感知到异常后会自动 ROLLBACK 数据库
+            raise RuntimeError("sing-box 服务热重载遭遇致命失败，上层业务必须中断并回滚事务！") from e
             
         except Exception as e:
             # 捕获可能出现的系统级异常（例如：sudo 权限没了、没装 systemctl、甚至内存溢出等）
