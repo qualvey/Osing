@@ -287,10 +287,10 @@ class UserService:
                 capture_output=True,
                 text=True
             )
-            print("[Success] sing-box 配置文件热重载成功！")
+            logger.info("[Success] sing-box 配置文件热重载成功！")
             return True
         except subprocess.CalledProcessError as e:
-            print(f"[Panic] 重载失败！错误信息: {e.stderr}")
+            logger.error(f"[Panic] 重载失败！错误信息: {e.stderr}")
             return False
 
 if __name__ == "__main__":
