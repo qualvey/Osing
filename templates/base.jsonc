@@ -1,0 +1,352 @@
+{
+    "log": {
+        "level": "info",
+        "timestamp": true
+    },
+    "experimental": {
+        "clash_api": {
+            "external_controller": "0.0.0.0:9090",
+            "external_ui": "./zash",
+            "external_ui_download_url": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip",
+            "default_mode": "rule",
+            "external_ui_download_detour": "Proxy"
+        },
+        "cache_file": {
+            "enabled": true,
+            "store_fakeip": false,
+            "store_rdrc": true
+        }
+    },
+    "dns": {
+        "servers": [
+            {
+                "tag": "google",
+                "type": "tls",
+                "server": "8.8.8.8",
+                "tls": {
+                    "enabled": true,
+                    "server_name": "dns.google"
+                },
+                "detour": "Proxy"
+            },
+            {
+                "tag": "ali",
+                "type": "udp",
+                "server": "223.5.5.5"
+            },
+            {
+                "tag": "lan",
+                "type": "local"
+            }
+        ],
+        "rules": [
+            {
+                "domain_suffix": [
+                    ".lan"
+                ],
+                "server": "lan"
+            },
+            {
+                "rule_set": [
+                    "blocklist"
+                ],
+                "action": "predefined",
+                "rcode": "NXDOMAIN",
+                "answer": [
+                    "adobe.io.  IN A  66.33.88.0",
+                    "adobe.com. IN A  67.33.88.0",
+                    "adobelogin.com. IN A  122.55.77.88",
+                    "cloudflare.net. IN A  122.55.77.80"
+                ]
+            },
+            {
+                "rule_set": [
+                    "category-ads-all"
+                ],
+                "action": "reject"
+            },
+            {
+                "clash_mode": "global",
+                "server": "google"
+            },
+            {
+                "clash_mode": "direct",
+                "server": "ali",
+                "disable_cache": false
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "rule_set": [
+                            "geosite-geolocation-cn",
+                            "geosite-cn"
+                        ]
+                    },
+                    {
+                        "domain_keyword": [
+                            "valve"
+                        ]
+                    }
+                ],
+                "server": "ali",
+                "disable_cache": false
+            },
+            {
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "rule_set": "geosite-geolocation-!cn",
+                        "invert": true
+                    },
+                    {
+                        "rule_set": "geoip-cn"
+                    }
+                ],
+                "server": "google",
+                "client_subnet": "114.114.114.114/24"
+            }
+        ],
+        "strategy": "ipv4_only",
+        "disable_cache": true,
+        "final": "google"
+    },
+    "inbounds": [
+        {
+            "tag": "tun-in",
+            "interface_name": "sing-tun",
+            "type": "tun",
+            "address": [
+                // "fdfe:dcba:9876::1/126",
+                "172.19.0.0/30"
+            ],
+            "mtu": 1400,
+            "auto_route": true,
+            "auto_redirect": true,
+            "strict_route": true,
+            //这一条会增加直连性能，但是无法global
+            //    "route_exclude_address_set": [
+            //          "geoip-cn"
+            //      ],
+            "route_exclude_address": [
+                "192.168.0.0/16",
+                "fc00::/7",
+                "116.62.232.15/32"
+            ],
+            "stack": "mixed"
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "tag": "Proxy",
+            "type": "selector",
+            "outbounds": [
+                "urltest"
+            ]
+        },
+        {
+            "type": "urltest",
+            "tag": "urltest",
+            "outbounds": []
+        }
+    ],
+    "route": {
+        "auto_detect_interface": true,
+        "final": "Proxy",
+        "default_domain_resolver": {
+            "server": "ali",
+            "rewrite_ttl": 60,
+            "client_subnet": "114.114.114.114"
+        },
+        "rules": [
+            {
+                "action": "sniff",
+                "timeout": "300ms"
+            },
+            {
+                "rule_set": [
+                    "blocklist",
+                    "category-ads-all"
+                ],
+                "action": "reject",
+                "no_drop": true
+            },
+            {
+                //dns with tls 无法sniff，无法分流，只能一刀切
+                //fallback 进传统dns,可以分流
+                "port": 853,
+                "action": "reject"
+            },
+            {
+                //2.
+                //把非国内的stun按住
+                //为什么不是分流，而是白名单模式？
+                //解释:
+                //STUN 的唯一目的就是为了实现 P2P（点对点）连接。
+                //就算走代理也不可能P2P,所以这个不存在代理
+                //你在一个 UDP 隧道（TUIC）里，跑另一个 UDP 探测协议（STUN）。
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "protocol": [
+                            "quic",
+                            "stun",
+                            "dtls"
+                        ]
+                    },
+                    {
+                        "rule_set": "geosite-cn",
+                        "invert": true
+                    },
+                    {
+                        "rule_set": "geoip-cn",
+                        "invert": true
+                    }
+                ],
+                "action": "reject"
+            },
+            {
+                //P2P 的核心是双向通信，而普通代理只有单向出站。
+                //P2P 下载需要你既能“找别人”（出站），也能让“别人找你”（入站）。
+                "protocol": "bittorrent",
+                "outbound": "direct"
+            },
+            {
+                "clash_mode": "direct",
+                "outbound": "direct"
+            },
+            {
+                "clash_mode": "global",
+                "outbound": "Proxy"
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "port": 53
+                    },
+                    {
+                        "protocol": "dns"
+                    }
+                ],
+                "action": "hijack-dns"
+            },
+            {
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "port": 22
+                    },
+                    {
+                        "rule_set": "geoip-cn"
+                    }
+                ],
+                "outbound": "direct"
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "rule_set": [
+                            "geosite-geolocation-cn",
+                            "geoip-cn",
+                            "geosite-cn"
+                        ]
+                    },
+                    {
+                        "domain_keyword": [
+                            "aliyun",
+                            "alibabacloud",
+                            "valve"
+                        ]
+                    },
+                    {
+                        "domain": [
+                            "clash.razord.top",
+                            "yacd.metacubex.one",
+                            "yacd.haishan.me",
+                            "d.metacubex.one",
+                            "www.st.com",
+                            "nas.nebulaol.com"
+                        ]
+                    },
+                    {
+                        "ip_is_private": true
+                    },
+                    {
+                        "protocol": "ntp"
+                    }
+                ],
+                "outbound": "direct"
+            },
+            {
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "rule_set": "geoip-cn"
+                    },
+                    {
+                        "rule_set": "geosite-geolocation-!cn",
+                        "invert": true
+                    }
+                ],
+                "outbound": "direct"
+            }
+        ],
+        "rule_set": [
+            {
+                "tag": "geoip-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "geosite-geolocation-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "geosite-geolocation-!cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "geosite-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "category-ads-all",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://fastly.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs",
+                "download_detour": "direct"
+            },
+            {
+                "tag": "blocklist",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/qualvey/sing-rulesets/main/block-list.srs",
+                "download_detour": "Proxy"
+            }
+        ]
+    }
+}

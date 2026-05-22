@@ -1,0 +1,1365 @@
+{
+    "log": {
+        "level": "debug",
+        "timestamp": true
+    },
+    "experimental": {
+        "clash_api": {
+            "external_controller": "0.0.0.0:9090",
+            "external_ui": "./zash",
+            "secret": "",
+            "external_ui_download_url": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip",
+            "default_mode": "rule",
+            "external_ui_download_detour": "Proxy"
+        },
+        "cache_file": {
+            "enabled": true,
+            "store_fakeip": false,
+            "store_rdrc": true
+        }
+    },
+    "dns": {
+        "servers": [
+            {
+                "tag": "google",
+                "type": "tls",
+                "server": "8.8.8.8",
+                "tls": {
+                    "enabled": true,
+                    "server_name": "dns.google"
+                },
+                "detour": "Proxy"
+            },
+            {
+                "tag": "ali",
+                "type": "udp",
+                "server": "223.5.5.5"
+            },
+            {
+                "tag": "me",
+                "type": "local"
+            }
+        ],
+        "rules": [
+            {
+                "domain_suffix": [
+                    ".lan"
+                ],
+                "server": "me"
+            },
+            {
+                "rule_set": [
+                    "blocklist"
+                ],
+                "action": "predefined",
+                "rcode": "NXDOMAIN",
+                "answer": [
+                    "adobe.io.  IN A  66.33.88.0",
+                    "adobe.com. IN A  67.33.88.0",
+                    "adobelogin.com. IN A  122.55.77.88",
+                    "cloudflare.net. IN A  122.55.77.80"
+                ]
+            },
+            {
+                "rule_set": [
+                    "category-ads-all"
+                ],
+                "action": "reject"
+            },
+            {
+                "clash_mode": "global",
+                "server": "google",
+                "disable_cache": true
+            },
+            {
+                "clash_mode": "direct",
+                "server": "ali"
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "rule_set": [
+                            "geosite-geolocation-cn",
+                            "geosite-cn"
+                        ]
+                    }
+                ],
+                "server": "ali"
+            },
+            {
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "rule_set": "geosite-geolocation-!cn",
+                        "invert": true
+                    },
+                    {
+                        "rule_set": "geoip-cn"
+                    }
+                ],
+                "server": "google",
+                "disable_cache": true,
+                "client_subnet": "114.114.114.114/24" // Any China client IP address
+            }
+        ],
+        "strategy": "ipv4_only",
+        // "strategy": "prefer_ipv6",
+        "disable_cache": true,
+        "final": "google"
+    },
+    "inbounds": [
+        {
+            "tag": "tun-in",
+            "interface_name": "sing-tun",
+            "type": "tun",
+            "address": [
+                // "fdfe:dcba:9876::1/126",
+                "172.19.0.0/30"
+            ],
+            "mtu": 9000,
+            "auto_route": true,
+            "auto_redirect": true,
+            "strict_route": true,
+            //这一条会增加直连性能，但是会没有真正的global模式
+            "route_exclude_address_set": [
+                "geoip-cn"
+            ],
+            "route_exclude_address": [
+                "192.168.0.0/16",
+                "fc00::/7",
+                "116.62.232.15/32"
+            ],
+            "stack": "mixed"
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "tag": "Proxy",
+            "type": "selector",
+            "outbounds": [
+                "SpeedTest",
+                "direct",
+                "\ud83c\uddef\ud83c\uddf5 osaka",
+                "\ud83c\uddf8\ud83c\uddec sg",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f01",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f02",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f03",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f04",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f05",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c01",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c02",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c03",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c04",
+                "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576101",
+                "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576102",
+                "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576103",
+                "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576104",
+                "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e01 \uff08AI\u4e13\u7528)",
+                "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e02 \uff08AI\u4e13\u7528)",
+                "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e03",
+                "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e04",
+                "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd01",
+                "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd02",
+                "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd03",
+                "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd04",
+                "\ud83c\udde8\ud83c\udde6 \u52a0\u62ff\u592701",
+                "\ud83c\udde8\ud83c\udde6 \u52a0\u62ff\u592702",
+                "\ud83c\uddee\ud83c\udde9 \u5370\u5c3c01",
+                "\ud83c\uddee\ud83c\udde9 \u5370\u5c3c02",
+                "\ud83c\uddf9\ud83c\udded \u6cf0\u56fd01",
+                "\ud83c\uddf9\ud83c\udded \u6cf0\u56fd02",
+                "\ud83c\uddec\ud83c\udde7 \u82f1\u56fd01",
+                "\ud83c\uddec\ud83c\udde7 \u82f1\u56fd02",
+                "\ud83c\uddeb\ud83c\uddf7 \u6cd5\u56fd01",
+                "\ud83c\uddeb\ud83c\uddf7 \u6cd5\u56fd02",
+                "\ud83c\udde9\ud83c\uddea \u5fb7\u56fd01",
+                "\ud83c\udde9\ud83c\uddea \u5fb7\u56fd02",
+                "\ud83c\uddf0\ud83c\uddf7 \u97e9\u56fd01",
+                "\ud83c\uddf0\ud83c\uddf7 \u97e9\u56fd02",
+                "\u53ea\u770b\u5230vless\u548ccdn\u8282\u70b9\u7684\u5378\u8f7d\u91cd\u88c5\u53ef\u89e3\u51b3",
+                "\ud83c\uddec\ud83c\udde7 UK02 \u2022 vLess",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f01 CDN",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f02 CDN",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f03 CDN",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c01 CDN",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c02 CDN",
+                "\ud83c\udde8\ud83c\udde6 \u52a0\u62ff\u592701 CDN",
+                "\ud83c\uddf9\ud83c\udded \u6cf0\u56fd01 CDN"
+            ]
+        },
+        {
+            "type": "urltest",
+            "tag": "SpeedTest",
+            "outbounds": [
+                "\ud83c\uddef\ud83c\uddf5 osaka",
+                "\ud83c\uddf8\ud83c\uddec sg",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c01",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c02",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c03",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c04",
+                "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576101",
+                "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576102",
+                "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576103",
+                "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576104",
+                "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e01 \uff08AI\u4e13\u7528)",
+                "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e02 \uff08AI\u4e13\u7528)",
+                "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e03",
+                "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e04",
+                "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd01",
+                "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd02",
+                "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd03",
+                "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd04",
+                "\ud83c\udde8\ud83c\udde6 \u52a0\u62ff\u592701",
+                "\ud83c\udde8\ud83c\udde6 \u52a0\u62ff\u592702",
+                "\ud83c\uddee\ud83c\udde9 \u5370\u5c3c01",
+                "\ud83c\uddee\ud83c\udde9 \u5370\u5c3c02",
+                "\ud83c\uddf9\ud83c\udded \u6cf0\u56fd01",
+                "\ud83c\uddf9\ud83c\udded \u6cf0\u56fd02",
+                "\ud83c\uddec\ud83c\udde7 \u82f1\u56fd01",
+                "\ud83c\uddec\ud83c\udde7 \u82f1\u56fd02",
+                "\ud83c\uddeb\ud83c\uddf7 \u6cd5\u56fd01",
+                "\ud83c\uddeb\ud83c\uddf7 \u6cd5\u56fd02",
+                "\ud83c\udde9\ud83c\uddea \u5fb7\u56fd01",
+                "\ud83c\udde9\ud83c\uddea \u5fb7\u56fd02",
+                "\ud83c\uddf0\ud83c\uddf7 \u97e9\u56fd01",
+                "\ud83c\uddf0\ud83c\uddf7 \u97e9\u56fd02",
+                "\u53ea\u770b\u5230vless\u548ccdn\u8282\u70b9\u7684\u5378\u8f7d\u91cd\u88c5\u53ef\u89e3\u51b3",
+                "\ud83c\uddec\ud83c\udde7 UK02 \u2022 vLess",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f01 CDN",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f02 CDN",
+                "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f03 CDN",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c01 CDN",
+                "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c02 CDN",
+                "\ud83c\udde8\ud83c\udde6 \u52a0\u62ff\u592701 CDN",
+                "\ud83c\uddf9\ud83c\udded \u6cf0\u56fd01 CDN"
+            ]
+        },
+        {
+            "type": "tuic",
+            "tag": "\ud83c\uddef\ud83c\uddf5 osaka",
+            "server": "ssh.ryugo.org",
+            "server_port": 8444,
+            "uuid": "059032A9-7D40-4A96-9BB1-36823D848068",
+            "password": "osaaqs",
+            "congestion_control": "bbr",
+            "udp_relay_mode": "native",
+            "udp_over_stream": false,
+            "zero_rtt_handshake": false,
+            "heartbeat": "3s",
+            "tls": {
+                "enabled": true,
+                "disable_sni": false,
+                "server_name": "ssh.ryugo.org",
+                "alpn": [
+                    "h3"
+                ],
+                "insecure": false
+            }
+        },
+        {
+            "type": "tuic",
+            "tag": "\ud83c\uddf8\ud83c\uddec sg",
+            "server": "www.wowoha.top",
+            "server_port": 8443,
+            "uuid": "059032A9-7D40-4A96-9BB1-36823D848068",
+            "password": "osaaqs",
+            "congestion_control": "bbr",
+            "udp_relay_mode": "native",
+            "udp_over_stream": false,
+            "zero_rtt_handshake": false,
+            "heartbeat": "3s",
+            "tls": {
+                "enabled": true,
+                "disable_sni": false,
+                "server_name": "www.wowoha.top",
+                "alpn": [
+                    "h3"
+                ],
+                "insecure": false,
+                "ech": {
+                    "enabled": true,
+                    "config": [
+                        "-----BEGIN ECH CONFIGS-----",
+                        "AEn+DQBFAAAgACD5SydizcxpEjs4b1O2gbi4ljoU1+zSckYi+iN4tJOGWgAMAAEA",
+                        "AQABAAIAAQADAA53d3czLm5oay5vci5qcAAA",
+                        "-----END ECH CONFIGS-----"
+                    ],
+                    "query_server_name": "www.wowoha.top"
+                }
+            }
+        },
+        {
+            "tag": "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f01",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23327,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "edge"
+                },
+                "server_name": "moe233-riolu-61a820a2-ab45-6be7-d0d7-aeed72816683.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f02",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23340,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "server_name": "moe233-riolu-fd0fcfe0-b92a-f4b5-fe04-53069f5afc1b.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f03",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "edge"
+                },
+                "server_name": "moe233-riolu-16ca0542-31db-e514-319a-6aa18e214be3.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f04",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "safari"
+                },
+                "server_name": "moe233-riolu-61a820a2-ab45-6be7-d0d7-aeed72816683.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f05",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "edge"
+                },
+                "server_name": "moe233-riolu-fd0fcfe0-b92a-f4b5-fe04-53069f5afc1b.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c01",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23326,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "server_name": "moe233-riolu-ce068da0-f2ca-6b9b-c3cb-7dc079ae6f9e.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c02",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23335,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "server_name": "moe233-riolu-8efefdb7-1701-a524-d925-844f02d32bf4.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c03",
+            "type": "anytls",
+            "server": "jp.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "edge"
+                },
+                "server_name": "moe233-riolu-ce068da0-f2ca-6b9b-c3cb-7dc079ae6f9e.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c04",
+            "type": "anytls",
+            "server": "jp.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "edge"
+                },
+                "server_name": "moe233-riolu-8efefdb7-1701-a524-d925-844f02d32bf4.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576101",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23320,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "qq"
+                },
+                "server_name": "moe233-riolu-c4c745f3-e49f-e7ac-b9d6-9a0fbe8511f0.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576102",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23325,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "qq"
+                },
+                "server_name": "moe233-riolu-0c545ee4-f931-9c24-26b7-eab6ea0370b3.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576103",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "qq"
+                },
+                "server_name": "moe233-riolu-c4c745f3-e49f-e7ac-b9d6-9a0fbe8511f0.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u576104",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "server_name": "moe233-riolu-0c545ee4-f931-9c24-26b7-eab6ea0370b3.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e01 \uff08AI\u4e13\u7528)",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23322,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "server_name": "moe233-riolu-e205aadd-7a10-0ed7-ed7e-d38ccbc15354.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e02 \uff08AI\u4e13\u7528)",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23336,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "server_name": "moe233-riolu-b78e8350-2039-90f8-a73d-c5cdf8e0543a.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e03",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "server_name": "moe233-riolu-e205aadd-7a10-0ed7-ed7e-d38ccbc15354.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf9\ud83c\uddfc \u53f0\u6e7e04",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "ios"
+                },
+                "server_name": "moe233-riolu-b78e8350-2039-90f8-a73d-c5cdf8e0543a.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd01",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23321,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "safari"
+                },
+                "server_name": "moe233-riolu-b94777dd-13e5-228d-ccdf-ea937be0c8ab.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd02",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23323,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "ios"
+                },
+                "server_name": "moe233-riolu-9ceea1e7-8f6a-c055-33ae-2da3dcc9d3b5.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd03",
+            "type": "anytls",
+            "server": "us.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "ios"
+                },
+                "server_name": "moe233-riolu-b94777dd-13e5-228d-ccdf-ea937be0c8ab.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u56fd04",
+            "type": "anytls",
+            "server": "us.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "server_name": "moe233-riolu-9ceea1e7-8f6a-c055-33ae-2da3dcc9d3b5.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\udde8\ud83c\udde6 \u52a0\u62ff\u592701",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23337,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "server_name": "moe233-riolu-f713d121-6926-6cb4-6542-94db1b827091.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\udde8\ud83c\udde6 \u52a0\u62ff\u592702",
+            "type": "anytls",
+            "server": "us.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "server_name": "moe233-riolu-f713d121-6926-6cb4-6542-94db1b827091.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddee\ud83c\udde9 \u5370\u5c3c01",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23338,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "qq"
+                },
+                "server_name": "moe233-riolu-3a085f91-005a-c285-f2c7-b4565ef204f0.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddee\ud83c\udde9 \u5370\u5c3c02",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "server_name": "moe233-riolu-3a085f91-005a-c285-f2c7-b4565ef204f0.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf9\ud83c\udded \u6cf0\u56fd01",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23332,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "qq"
+                },
+                "server_name": "moe233-riolu-72c79615-c4ec-2b5c-e73a-47737a3992b4.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf9\ud83c\udded \u6cf0\u56fd02",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "server_name": "moe233-riolu-72c79615-c4ec-2b5c-e73a-47737a3992b4.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddec\ud83c\udde7 \u82f1\u56fd01",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23334,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "server_name": "moe233-riolu-fbe8c179-cb07-723f-bb5a-eb256a5f2b0e.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddec\ud83c\udde7 \u82f1\u56fd02",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                },
+                "server_name": "moe233-riolu-fbe8c179-cb07-723f-bb5a-eb256a5f2b0e.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddeb\ud83c\uddf7 \u6cd5\u56fd01",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23333,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "qq"
+                },
+                "server_name": "moe233-riolu-8372d27c-0ed6-d315-e782-1f55655ac9df.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddeb\ud83c\uddf7 \u6cd5\u56fd02",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "edge"
+                },
+                "server_name": "moe233-riolu-8372d27c-0ed6-d315-e782-1f55655ac9df.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\udde9\ud83c\uddea \u5fb7\u56fd01",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23329,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "qq"
+                },
+                "server_name": "moe233-riolu-128479d7-732e-41e0-e6fc-ce95e60d375e.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\udde9\ud83c\uddea \u5fb7\u56fd02",
+            "type": "anytls",
+            "server": "hk.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "edge"
+                },
+                "server_name": "moe233-riolu-128479d7-732e-41e0-e6fc-ce95e60d375e.qchwnd.moe"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf0\ud83c\uddf7 \u97e9\u56fd01",
+            "type": "anytls",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 23341,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": true,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "edge"
+                },
+                "server_name": "moe233-riolu-5e3746c6-b3a3-8086-d853-bd323b99bae2.hnair.com"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf0\ud83c\uddf7 \u97e9\u56fd02",
+            "type": "anytls",
+            "server": "jp.edge.moe233.org",
+            "server_port": 443,
+            "password": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h2"
+                ],
+                "insecure": false,
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                },
+                "server_name": "moe233-riolu-5e3746c6-b3a3-8086-d853-bd323b99bae2.qchwnd.moe"
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "\u53ea\u770b\u5230vless\u548ccdn\u8282\u70b9\u7684\u5378\u8f7d\u91cd\u88c5\u53ef\u89e3\u51b3",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 21527,
+            "uuid": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "packet_encoding": "xudp",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "insecure": true,
+                "server_name": "i0.hdslb.com",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "firefox"
+                }
+            }
+        },
+        {
+            "type": "vless",
+            "tag": "\ud83c\uddec\ud83c\udde7 UK02 \u2022 vLess",
+            "server": "1768467601.cn.riolu01.link",
+            "server_port": 46509,
+            "uuid": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "packet_encoding": "xudp",
+            "flow": "",
+            "tls": {
+                "enabled": true,
+                "insecure": true,
+                "server_name": "i0.hdslb.com",
+                "utls": {
+                    "enabled": true,
+                    "fingerprint": "chrome"
+                }
+            }
+        },
+        {
+            "tag": "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f01 CDN",
+            "type": "vmess",
+            "server": "cfn.cdn.moe233.org",
+            "server_port": 443,
+            "uuid": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "security": "auto",
+            "alter_id": 0,
+            "transport": {
+                "type": "ws",
+                "path": "\/riolu\/1?ed=2048",
+                "headers": {
+                    "Host": [
+                        "dvq7ie0k1ww2v.cloudfront.net"
+                    ]
+                },
+                "max_early_data": 2048,
+                "early_data_header_name": "Sec-WebSocket-Protocol"
+            },
+            "tls": {
+                "enabled": true,
+                "insecure": false,
+                "server_name": "dvq7ie0k1ww2v.cloudfront.net"
+            }
+        },
+        {
+            "tag": "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f02 CDN",
+            "type": "vmess",
+            "server": "cfn.cdn.moe233.org",
+            "server_port": 443,
+            "uuid": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "security": "auto",
+            "alter_id": 0,
+            "transport": {
+                "type": "ws",
+                "path": "\/riolu\/2?ed=2048",
+                "headers": {
+                    "Host": [
+                        "d3u6b75zj1a6q0.cloudfront.net"
+                    ]
+                },
+                "max_early_data": 2048,
+                "early_data_header_name": "Sec-WebSocket-Protocol"
+            },
+            "tls": {
+                "enabled": true,
+                "insecure": false,
+                "server_name": "d3u6b75zj1a6q0.cloudfront.net"
+            }
+        },
+        {
+            "tag": "\ud83c\udded\ud83c\uddf0 \u9999\u6e2f03 CDN",
+            "type": "vmess",
+            "server": "cfn.cdn.moe233.org",
+            "server_port": 443,
+            "uuid": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "security": "auto",
+            "alter_id": 0,
+            "transport": {
+                "type": "ws",
+                "path": "\/riolu\/3?ed=2048",
+                "headers": {
+                    "Host": [
+                        "d3rxch7qi3zkv7.cloudfront.net"
+                    ]
+                },
+                "max_early_data": 2048,
+                "early_data_header_name": "Sec-WebSocket-Protocol"
+            },
+            "tls": {
+                "enabled": true,
+                "insecure": false,
+                "server_name": "d3rxch7qi3zkv7.cloudfront.net"
+            }
+        },
+        {
+            "tag": "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c01 CDN",
+            "type": "vmess",
+            "server": "cfn.cdn.moe233.org",
+            "server_port": 443,
+            "uuid": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "security": "auto",
+            "alter_id": 0,
+            "transport": {
+                "type": "ws",
+                "path": "\/riolu\/4?ed=2048",
+                "headers": {
+                    "Host": [
+                        "d232fuc3xd1vzm.cloudfront.net"
+                    ]
+                },
+                "max_early_data": 2048,
+                "early_data_header_name": "Sec-WebSocket-Protocol"
+            },
+            "tls": {
+                "enabled": true,
+                "insecure": false,
+                "server_name": "d232fuc3xd1vzm.cloudfront.net"
+            }
+        },
+        {
+            "tag": "\ud83c\uddef\ud83c\uddf5 \u65e5\u672c02 CDN",
+            "type": "vmess",
+            "server": "cfn.cdn.moe233.org",
+            "server_port": 443,
+            "uuid": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "security": "auto",
+            "alter_id": 0,
+            "transport": {
+                "type": "ws",
+                "path": "\/riolu\/7?ed=2048",
+                "headers": {
+                    "Host": [
+                        "d27lumjg91ny89.cloudfront.net"
+                    ]
+                },
+                "max_early_data": 2048,
+                "early_data_header_name": "Sec-WebSocket-Protocol"
+            },
+            "tls": {
+                "enabled": true,
+                "insecure": false,
+                "server_name": "d27lumjg91ny89.cloudfront.net"
+            }
+        },
+        {
+            "tag": "\ud83c\udde8\ud83c\udde6 \u52a0\u62ff\u592701 CDN",
+            "type": "vmess",
+            "server": "cfn.cdn.moe233.org",
+            "server_port": 443,
+            "uuid": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "security": "auto",
+            "alter_id": 0,
+            "transport": {
+                "type": "ws",
+                "path": "\/riolu\/5?ed=2048",
+                "headers": {
+                    "Host": [
+                        "d2eyeotmscglv5.cloudfront.net"
+                    ]
+                },
+                "max_early_data": 2048,
+                "early_data_header_name": "Sec-WebSocket-Protocol"
+            },
+            "tls": {
+                "enabled": true,
+                "insecure": false,
+                "server_name": "d2eyeotmscglv5.cloudfront.net"
+            }
+        },
+        {
+            "tag": "\ud83c\uddf9\ud83c\udded \u6cf0\u56fd01 CDN",
+            "type": "vmess",
+            "server": "cfn.cdn.moe233.org",
+            "server_port": 443,
+            "uuid": "76c37d37-4504-44e0-8e66-a280802ad136",
+            "security": "auto",
+            "alter_id": 0,
+            "transport": {
+                "type": "ws",
+                "path": "\/riolu\/6?ed=2048",
+                "headers": {
+                    "Host": [
+                        "d13ubur8o46pcj.cloudfront.net"
+                    ]
+                },
+                "max_early_data": 2048,
+                "early_data_header_name": "Sec-WebSocket-Protocol"
+            },
+            "tls": {
+                "enabled": true,
+                "insecure": false,
+                "server_name": "d13ubur8o46pcj.cloudfront.net"
+            }
+        }
+    ],
+    "route": {
+        "auto_detect_interface": true,
+        "final": "Proxy",
+        "default_domain_resolver": {
+            "server": "ali",
+            "rewrite_ttl": 60,
+            "client_subnet": "1.1.1.1"
+        },
+        "rules": [
+            {
+                "action": "sniff",
+                "timeout": "600ms"
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "port": 53
+                    },
+                    {
+                        "protocol": "dns"
+                    }
+                ],
+                "action": "hijack-dns"
+            },
+            {
+                "rule_set": [
+                    "blocklist",
+                    "category-ads-all"
+                ],
+                "action": "reject",
+                "no_drop": true
+            },
+            {
+                "clash_mode": "direct",
+                "outbound": "direct"
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "clash_mode": "global"
+                    },
+                    {
+                        "domain_keyword": [
+                            "icloudnative",
+                            "gstatic",
+                            "googleapis"
+                        ]
+                    }
+                ],
+                "outbound": "Proxy"
+            },
+            {
+                "port": 22,
+                "outbound": "direct"
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "ip_cidr": [
+                            "10.0.0.0/24",
+                            "192.168.0.1/32"
+                        ]
+                    },
+                    {
+                        "port_range": [
+                            "10240:"
+                        ]
+                    },
+                    {
+                        "rule_set": [
+                            "geosite-geolocation-cn",
+                            "geoip-cn",
+                            "geosite-cn",
+                            "direct"
+                        ]
+                    },
+                    {
+                        "domain_keyword": [
+                            "aliyun",
+                            "alibabacloud"
+                        ]
+                    },
+                    {
+                        "domain": [
+                            "gstatic.com",
+                            "clash.razord.top",
+                            "yacd.metacubex.one",
+                            "yacd.haishan.me",
+                            "d.metacubex.one",
+                            "www.st.com",
+                            "nas.nebulaol.com"
+                        ]
+                    },
+                    {
+                        "ip_is_private": true
+                    }
+                ],
+                "outbound": "direct"
+            },
+            //下面这个规则是否使用，还不好说，我也不太明白
+            // {
+            //     "type": "logical",
+            //     "mode": "or",
+            //     "rules": [
+            //你的设备将无法通过 853 端口进行加密查询。如果你的 DNS 设置里用了 tls:// 地址，可能会导致无法上网。
+            //         {
+            //             "port": 853
+            //         },
+            //主要是拦截 YouTube、Chrome 访问 Google 服务时使用的 QUIC 协议。拦截后流量会降级回普通的 TCP (HTTPS)，通常用于解决部分线路 UDP 容易被运营商限速的问题。
+            //         {
+            //             "network": "udp",
+            //             "port": 443
+            //         },
+            //拦截 P2P 探测。这会导致 WebRTC（网页通话）、某些在线游戏、P2P 下载（BT）难以建立直接连接，可能导致视频通话黑屏或下载速度慢。
+            //         {
+            //             "protocol": "stun"
+            //         }
+            //     ],
+            //     "action": "reject"
+            // },
+            {
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "rule_set": "geoip-cn"
+                    },
+                    {
+                        "rule_set": "geosite-geolocation-!cn",
+                        "invert": true
+                    }
+                ],
+                "outbound": "direct"
+            }
+        ],
+        "rule_set": [
+            {
+                "tag": "geoip-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "geosite-geolocation-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-cn.srs"
+            },
+            {
+                "tag": "geosite-geolocation-!cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs"
+            },
+            {
+                "tag": "geosite-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "category-ads-all",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://fastly.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs",
+                "download_detour": "direct"
+            },
+            {
+                "tag": "blocklist",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/qualvey/sing-rulesets/main/block-list.srs"
+            },
+            {
+                "tag": "direct",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/DDCHlsq/sing-ruleset/ruleset/direct.srs",
+                "download_detour": "Proxy"
+            }
+        ]
+    }
+}

@@ -1,0 +1,177 @@
+{
+    "log": {
+        "level": "debug",
+        "timestamp": true
+    },
+    "experimental": {
+        "clash_api": {
+            "external_controller": "0.0.0.0:8090",
+            "external_ui": "zashboard",
+            "secret": "singbox",
+            "external_ui_download_url": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip",
+            "external_ui_download_detour": "direct",
+            "default_mode": "rule"
+        },
+        "cache_file": {
+            "enabled": true,
+            "store_fakeip": false,
+            "store_rdrc": true
+        }
+    },
+    "inbounds": [
+        {
+            "type": "tuic",
+            "tag": "tuic-zhang",
+            "listen": "0.0.0.0",
+            "listen_port": 8443,
+            "users": [
+                {
+                    "name": "admin",
+                    "uuid": "059032A9-7D40-4A96-9BB1-36823D848068",
+                    "password": "osaaqs"
+                },
+                {
+                    "name": "张晓雅",
+                    "uuid": "987e6543-e21b-12d3-a456-426614174999",
+                    "password": "facebook"
+                },
+                {
+                    "name": "张升旭",
+                    "uuid": "0fc06f40-08f2-491e-8aea-c082d70e5b79",
+                    "password": "github"
+                },
+                {
+                    "name": "李龙",
+                    "uuid": "a2455af8-fd76-450d-a6f8-de4cff5347b6",
+                    "password": "siOWbgRCngnY9JF2la6dsg"
+                }
+            ],
+            "congestion_control": "bbr",
+            "auth_timeout": "3s",
+            "zero_rtt_handshake": false,
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h3"
+                ],
+                "acme": {
+                    "domain": [
+                        "ssh.ryugo.org"
+                    ],
+                    "email": "ultralmantigar@gmail.com",
+                    "provider": "letsencrypt",
+                    "disable_http_challenge": false,
+                    "disable_tls_alpn_challenge": false
+                },
+                "ech": {
+                    "enabled": true,
+                    "key": [
+                        "-----BEGIN ECH KEYS-----",
+                        "ACDaTihZBNvGKWpp5uTLmtjXzesZ1HPRY9VodLhrivb2AgBR/g0ATQAAIAAgHK6M",
+                        "jK8DWImn98Mgh9PYcaoLUWlQ2tn874LNjvaadykADAABAAEAAQACAAEAAwAWYWdl",
+                        "ZXllLmFwcC5kaXR1c2h1LmNvbQAA",
+                        "-----END ECH KEYS-----"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "tuic",
+            "tag": "tuic-ryu",
+            "listen": "0.0.0.0",
+            "listen_port": 8444,
+            "users": [
+                {
+                    "name": "admin",
+                    "uuid": "059032A9-7D40-4A96-9BB1-36823D848068",
+                    "password": "osaaqs"
+                }
+            ],
+            "congestion_control": "bbr",
+            "auth_timeout": "3s",
+            "zero_rtt_handshake": false,
+            "tls": {
+                "enabled": true,
+                "alpn": [
+                    "h3"
+                ],
+                "acme": {
+                    "domain": [
+                        "ssh.ryugo.org"
+                    ],
+                    "email": "ultralmantigar@gmail.com",
+                    "provider": "letsencrypt",
+                    "disable_http_challenge": false,
+                    "disable_tls_alpn_challenge": false
+                },
+                "ech": {
+                    "enabled": true,
+                    "key": [
+                        "-----BEGIN ECH KEYS-----",
+                        "ACDaTihZBNvGKWpp5uTLmtjXzesZ1HPRY9VodLhrivb2AgBR/g0ATQAAIAAgHK6M",
+                        "jK8DWImn98Mgh9PYcaoLUWlQ2tn874LNjvaadykADAABAAEAAQACAAEAAwAWYWdl",
+                        "ZXllLmFwcC5kaXR1c2h1LmNvbQAA",
+                        "-----END ECH KEYS-----"
+                    ]
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "selector",
+            "tag": "choose",
+            "outbounds": [
+                "direct",
+                "tuic-sg"
+            ]
+        },
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "type": "tuic",
+            "tag": "tuic-sg",
+            "server": "www.wowoha.top",
+            "server_port": 8443,
+            "uuid": "059032A9-7D40-4A96-9BB1-36823D848068",
+            "password": "osaaqs",
+            "congestion_control": "bbr",
+            "udp_relay_mode": "native",
+            "udp_over_stream": false,
+            "zero_rtt_handshake": false,
+            "heartbeat": "3s",
+            "tls": {
+                "enabled": true,
+                "disable_sni": false,
+                "server_name": "www.wowoha.top",
+                "alpn": [
+                    "h3"
+                ],
+                "insecure": false,
+                "ech": {
+                    "enabled": true,
+                    "config": [
+                        "-----BEGIN ECH CONFIGS-----",
+                        "AEn+DQBFAAAgACD5SydizcxpEjs4b1O2gbi4ljoU1+zSckYi+iN4tJOGWgAMAAEA",
+                        "AQABAAIAAQADAA53d3czLm5oay5vci5qcAAA",
+                        "-----END ECH CONFIGS-----"
+                    ]
+                }
+            }
+        }
+    ],
+    "route": {
+        "rules": [
+            {
+                "action": "sniff"
+            },
+            {
+                "inbound": "tuic-in",
+                "outbound": "choose"
+            }
+        ],
+        "final": "direct"
+    }
+}

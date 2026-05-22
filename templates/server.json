@@ -1,0 +1,68 @@
+{
+    "log": {
+        "level": "info",
+        "timestamp": true
+    },
+    "certificate_providers": [
+        {
+            "type": "acme",
+            "tag": "letsencrypt",
+            "domain": [
+                ""
+            ],
+            "default_server_name": "",
+            "email": "",
+            "provider": "letsencrypt",
+            "dns01_challenge": {
+                "provider": "cloudflare",
+                "api_token": "token"
+            }
+        }
+    ],
+    "experimental": {
+        "clash_api": {
+            "external_controller": "localhost:8090",
+            "external_ui": "zashboard",
+            "secret": "singbox",
+            "external_ui_download_url": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip",
+            "external_ui_download_detour": "direct",
+            "default_mode": "rule"
+        },
+        "cache_file": {
+            "enabled": true,
+            "store_fakeip": false
+        },
+        "v2ray_api": {
+            "listen": "127.0.0.1:8080",
+            "stats": {
+                "enabled": true,
+                "users": [
+                    "上"
+                ]
+            }
+        }
+    },
+    "dns": {
+        "servers": [
+            {
+                "tag": "google",
+                "type": "tls",
+                "server": "8.8.8.8",
+                "tls": {
+                    "enabled": true,
+                    "server_name": "dns.google"
+                }
+            }
+        ]
+    },
+    "inbounds": [],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        }
+    ],
+    "route": {
+        "final": "direct"
+    }
+}

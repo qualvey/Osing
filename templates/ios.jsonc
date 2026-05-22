@@ -1,0 +1,276 @@
+//Only for sing-box core version 1.11.4
+//1.11 is not supported anytls protocal
+{
+    "log": {
+        "level": "info",
+        "timestamp": true
+    },
+    "experimental": {
+        "clash_api": {
+            "external_controller": "127.0.0.1:9090",
+            "external_ui": "./zash",
+            "external_ui_download_url": "https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip",
+            "external_ui_download_detour": "Proxy"
+        },
+        "cache_file": {
+            "enabled": true,
+            "store_fakeip": false,
+            "store_rdrc": true
+        }
+    },
+    "dns": {
+        "servers": [
+            {
+                "tag": "google",
+                "address": "tls://8.8.8.8",
+                "detour": "Proxy"
+            },
+            {
+                "tag": "ali",
+                "address": "udp://223.5.5.5",
+                "detour": "direct"
+            }
+        ],
+        "rules": [
+            {
+                "outbound": "any",
+                "server": "ali"
+            },
+            {
+                "rule_set": [
+                    "category-ads-all"
+                ],
+                "action": "reject",
+                "method": "drop"
+            },
+            {
+                "clash_mode": "global",
+                "server": "google",
+                "disable_cache": true
+            },
+            {
+                "clash_mode": "direct",
+                "server": "ali",
+                "disable_cache": true
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "rule_set": [
+                            "geosite-geolocation-cn",
+                            "geosite-cn"
+                        ]
+                    }
+                ],
+                "server": "ali",
+                "disable_cache": false
+            },
+            {
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "rule_set": "geosite-geolocation-!cn",
+                        "invert": true
+                    },
+                    {
+                        "rule_set": "geoip-cn"
+                    }
+                ],
+                "server": "google",
+                "disable_cache": true,
+                "client_subnet": "114.114.114.114/24"
+            }
+        ],
+        "strategy": "ipv4_only",
+        "final": "google"
+    },
+    "inbounds": [
+        {
+            "tag": "tun-in",
+            "type": "tun",
+            "interface_name": "sing-tun",
+            "address": [
+                "172.19.0.0/30"
+            ],
+            "mtu": 1400,
+            "auto_route": true,
+            "strict_route": true,
+            "route_exclude_address_set": [
+                "geoip-cn"
+            ],
+            "route_exclude_address": [
+                "192.168.0.0/16",
+                "fc00::/7",
+                "116.62.232.15/32"
+            ],
+            "stack": "mixed"
+        }
+    ],
+    "outbounds": [
+        {
+            "type": "direct",
+            "tag": "direct"
+        },
+        {
+            "tag": "Proxy",
+            "type": "selector",
+            "outbounds": [
+                "osaka-vless",
+                "🇯🇵 osaka",
+                "urltest",
+                "direct"
+            ]
+        },
+        {
+            "type": "urltest",
+            "tag": "urltest",
+            "outbounds": []
+        }
+    ],
+    "route": {
+        "auto_detect_interface": true,
+        "final": "Proxy",
+        "override_android_vpn": true,
+        "rules": [
+            {
+                "action": "sniff",
+                "timeout": "600ms"
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "port": 53
+                    },
+                    {
+                        "protocol": "dns"
+                    }
+                ],
+                "action": "hijack-dns"
+            },
+            {
+                "rule_set": [
+                    "blocklist",
+                    "category-ads-all"
+                ],
+                "action": "reject",
+                "no_drop": true
+            },
+            {
+                "clash_mode": "direct",
+                "outbound": "direct"
+            },
+            {
+                "clash_mode": "global",
+                "outbound": "Proxy"
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "ip_cidr": [
+                            "10.0.0.0/24",
+                            "192.168.0.1/32"
+                        ]
+                    },
+                    {
+                        "port_range": [
+                            "10240:"
+                        ]
+                    },
+                    {
+                        "rule_set": [
+                            "geosite-geolocation-cn",
+                            "geoip-cn",
+                            "geosite-cn"
+                        ]
+                    },
+                    {
+                        "ip_is_private": true
+                    }
+                ],
+                "outbound": "direct"
+            },
+            {
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "port": 853
+                    },
+                    {
+                        "network": "udp",
+                        "port": 443
+                    },
+                    {
+                        "protocol": "stun"
+                    }
+                ],
+                "action": "reject"
+            },
+            {
+                "type": "logical",
+                "mode": "and",
+                "rules": [
+                    {
+                        "rule_set": "geoip-cn"
+                    },
+                    {
+                        "rule_set": "geosite-geolocation-!cn",
+                        "invert": true
+                    }
+                ],
+                "outbound": "direct"
+            }
+        ],
+        "rule_set": [
+            {
+                "tag": "geoip-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geoip/rule-set/geoip-cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "geosite-geolocation-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "geosite-geolocation-!cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-geolocation-!cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "geosite-cn",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-cn.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "blocklist",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://raw.githubusercontent.com/qualvey/sing-rulesets/main/block-list.srs",
+                "download_detour": "Proxy"
+            },
+            {
+                "tag": "category-ads-all",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://fastly.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs",
+                "download_detour": "direct"
+            }
+        ]
+    }
+}

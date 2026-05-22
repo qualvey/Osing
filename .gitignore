@@ -1,0 +1,13 @@
+.venv
+.pytest_cache
+.python-version
+.access.log
+.error.log
+.proxy_users.db
+uvicorn.log
+src/**/__pycache__/
+test/**/__pycache__/
+my_config.json
+config.json.bak
+app.log
+access.log
