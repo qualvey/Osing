@@ -5,15 +5,12 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "redis>=7.1.0",
     "pypinyin>=0.55.0 ",
     "jstyleson",
     "pydbus",
-    "pygobject",
     "pytest>=9.0.2",
     "rich",
     "aioconsole>=0.8.2",
-    "systemd-python>=235",
     "fastapi>=0.136.1",
     "uvicorn>=0.47.0",
     "pyyaml>=6.0.3",
