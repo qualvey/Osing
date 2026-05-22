@@ -89,10 +89,12 @@ class UserService:
                         "stats": {
                             "enabled": True,
                             "users": [
+                                self.user.get("name")
                             ]
                         }
                     }
                     config["experimental"]["v2ray_api"] = v2ray_api
+                    
                 
                 # 确保 inbounds 字典存在
             if "inbounds" not in config:

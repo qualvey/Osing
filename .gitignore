@@ -12,3 +12,4 @@ config.json.bak
 app.log
 access.log
 uv.lock
+proxy_users.db

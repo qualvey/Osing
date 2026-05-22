@@ -156,7 +156,7 @@ class ClientManager:
             logger.error("❌ 错误: 用户元数据中缺失唯一 tag，无法创建配置")
             return False
         nodes = self.node.generate()
-        self.nodes = nodes
+        self.nodes = list(nodes)
         
 
         # 1. 确保物理文件夹存在 (parents=True 类似 mkdir -p，exist_ok=True 防止目录已存在时报错)
@@ -182,11 +182,11 @@ class ClientManager:
                 if outbound["tag"] == "Proxy":
                     proxy_group = outbound.get("outbounds")
                     break
-
+            
             for node in self.nodes:
                 proxy_group.append(node["tag"])
-                config["outbounds"].append(node)
-
+                config["outbounds"].append(node)     
+                
             inbounds = config.get("inbounds", [])
             tun = None
             for inbound in inbounds:
