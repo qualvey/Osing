@@ -107,6 +107,9 @@ class UserService:
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 jstyleson.dump(config, f, indent=4, ensure_ascii=False)
             logger.info(f"✅ [Service] 服务端主配置文件已成功更新。")
+            
+            self.reload()
+            
         except Exception as e:
             logger.error(f"❌ [Service] 合并写入配置中途崩溃: {e}，正在尝试就地单线救灾...")
             # 如果在读写、解析 JSON 时崩了，立刻在内部调用自己的 rollback 先把文件换回来
@@ -180,6 +183,7 @@ class UserService:
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 jstyleson.dump(config, f, indent=4, ensure_ascii=False)
             logger.info(f"✅ [Service] 服务端主配置文件已成功更新。")
+            self.reload()
         except Exception as e:
             logger.error(f"❌ [Service] 合并写入配置中途崩溃: {e}，正在尝试就地单线救灾...")
             # 如果在读写、解析 JSON 时崩了，立刻在内部调用自己的 rollback 先把文件换回来
@@ -274,17 +278,20 @@ class UserService:
                     shutil.copy2(backup_path, self.config_path)
                 except Exception as e:
                     return False,e
-                #TODO 重写
-        # try:
-        #     bus = SystemBus()
-        #     systemd = bus.get(".systemd1")
-        #     systemd.ReloadUnit(self.service_name, "replace")\
-            
-        #     return True
-        # except GLib.Error as e:
-        #     return False
-        # except Exception as e:
-        #     return False
-        
+        try:
+            # 使用 subprocess 执行系统命令
+            # stdout和stderr设置为PIPE可以捕获可能发生的错误
+            result = subprocess.run(
+                ["sudo", "systemctl", "reload", "sing-box"],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            print("[Success] sing-box 配置文件热重载成功！")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"[Panic] 重载失败！错误信息: {e.stderr}")
+            return False
+
 if __name__ == "__main__":
     logger.info("正在测试 ServiceManager 的配置校验和重载功能...")
