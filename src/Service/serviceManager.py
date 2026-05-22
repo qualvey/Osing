@@ -277,17 +277,32 @@ class UserService:
 
         # 2. 核心重载
         try:
-            result = subprocess.run(
-                ["sudo", "systemctl", "reload", "sing-box"],
-                check=True,
+            # 🎯 步骤 A：直接通过 pgrep 获取 sing-box 的最老主进程 PID (-o 代表 earliest 进程)
+            # 这样可以 100% 避开 systemd 的内部状态卡死问题
+            pid_process = subprocess.run(
+                ["pgrep", "-o", "sing-box"],
                 capture_output=True,
                 text=True
             )
             
-            # 🎯 核心修复：既然用了 check=True，能走到这一步说明 returncode 必定为 0 (成功)
-            logger.info("[Success] sing-box 配置文件热重载成功！")
-            return True
-            
+            if pid_process.returncode == 0 and pid_process.stdout.strip():
+                pid = int(pid_process.stdout.strip())
+                
+                # 🎯 步骤 B：直接向进程发送 SIGHUP (等同于 kill -HUP <PID>)
+                # sing-box 收到这个原生信号会立刻在内部平滑热重载配置，Systemd 连拦截的机会都没有
+                os.kill(pid, signal.SIGHUP)
+                logger.info(f"[Success] 绕过 Systemd 状态机，成功通过原生 SIGHUP 信号热重载进程 (PID: {pid})！")
+                return True
+                
+            else:
+                # 🎯 步骤 C：如果系统里连进程都没找到，说明真的没开，直接冷启动
+                logger.warning("[Reload] 进程不存在，执行冷启动...")
+                subprocess.run(
+                    ["sudo", "systemctl", "start", "sing-box"],
+                    check=True, capture_output=True, text=True
+                )
+                logger.info("[Success] sing-box 服务已成功全新冷启动！")
+                return True
         except subprocess.CalledProcessError as e:
             # 1. 记录底层错误
             logger.error(f"[Panic] sing-box 重载命令执行失败！错误码: {e.returncode}")
