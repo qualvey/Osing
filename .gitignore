@@ -11,3 +11,4 @@ my_config.json
 config.json.bak
 app.log
 access.log
+uv.lock
