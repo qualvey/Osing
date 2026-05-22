@@ -80,7 +80,19 @@ class UserService:
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 config = jstyleson.load(f)
-                config["experimental"]["v2ray_api"]["stats"]["users"].append(self.user.get("name"))
+                
+                if config["experimental"].get("v2ray_api"):
+                    config["experimental"]["v2ray_api"]["stats"]["users"].append(self.user.get("name"))
+                else: 
+                    v2ray_api = {
+                        "listen": "127.0.0.1:8080",
+                        "stats": {
+                            "enabled": True,
+                            "users": [
+                            ]
+                        }
+                    }
+                    config["experimental"]["v2ray_api"] = v2ray_api
                 
                 # 确保 inbounds 字典存在
             if "inbounds" not in config:
