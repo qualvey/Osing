@@ -1,5 +1,6 @@
 # Sing-box 节点管理系统
 为了快速配置vless和tuic节点，并产生分发订阅
+
 订阅功能需要配合nginx做前置代理
 
 ## Prerequisites
@@ -11,26 +12,37 @@ sudo apt update
 sudo apt install libgirepository-2.0-dev gobject-introspection cmake libcairo2-dev build-essential pkg-config libsystemd-dev
 ```
 
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh &&
+source $HOME/.local/bin/env
+```
+
 ## Install
 
 ```bash
-git clone this repo
-cd repo_dir
+git clone https://github.com/qualvey/Osing.git
+cd Osing
 uv sync
-```
-
-## Config Required
-
-`config.json`
-
-```json
-    "domain": "us.ryugo.org",
 ```
 
 ## How to use
 
 ## Init
 
+Warning: If you already have a wokring instance.Just for adding nodes,skip this step.
+### Setup config.json
+
+Edit the file with your favorate editor,etc.vim.
+`config.json`
+
+```json
+    "domain": "your_server_domain",
+    "node_tag": "the name you want to show in client",
+    "firstJump": "If use midle vps,midle vps ip or domain,else as  domain "m,
+    "email": "Used for acme to request tls cert",
+    "cloudflare_key": "For dns01 chalange to get tls cert"
+```
+### run init process
 ```bash
 uv run src/main.py init
 ```
