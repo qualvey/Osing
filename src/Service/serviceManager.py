@@ -267,30 +267,41 @@ class UserService:
         #检查配置文件是否有语法错误，然后安全地重载服务
         
     def reload(self):
-
+        # 1. 严格校验
         valid = self.validate_config()
         if not valid:
-            logger.error("The config is not valid!")
-            # 回滚
-            backup_path = f"{self.config_path}.bak"
-            if os.path.exists(backup_path):
-                try:
-                    shutil.copy2(backup_path, self.config_path)
-                except Exception as e:
-                    return False,e
+            logger.warning("[Reload] 新配置校验失败，正在启动回滚流程...")
+            self.rollback()
+            # 🎯 核心修复：校验失败并回滚后，必须立刻中断，阻止后面的重载动作！
+            return False
+
+        # 2. 核心重载
         try:
-            # 使用 subprocess 执行系统命令
-            # stdout和stderr设置为PIPE可以捕获可能发生的错误
             result = subprocess.run(
                 ["sudo", "systemctl", "reload", "sing-box"],
                 check=True,
                 capture_output=True,
                 text=True
             )
+            
+            # 🎯 核心修复：既然用了 check=True，能走到这一步说明 returncode 必定为 0 (成功)
             logger.info("[Success] sing-box 配置文件热重载成功！")
             return True
+            
         except subprocess.CalledProcessError as e:
-            logger.error(f"[Panic] 重载失败！错误信息: {e.stderr}")
+            # 捕获 systemctl 执行失败（退出码不为 0）
+            logger.error(f"[Panic] sing-box 重载命令执行失败！错误码: {e.returncode}")
+            logger.error(f"[Detail] 错误详情: {e.stderr.strip()}")
+            
+            # 💡 思考：这里如果重载失败了，要不要也触发一次 self.rollback()？
+            # 建议加上，防止错误的配置残留砸手里
+            logger.warning("[Panic] 正在尝试回滚至上一个稳定配置...")
+            self.rollback()
+            return False
+            
+        except Exception as e:
+            # 捕获可能出现的系统级异常（例如：sudo 权限没了、没装 systemctl、甚至内存溢出等）
+            logger.critical(f"[System Error] 遭遇非预期的系统级故障: {str(e)}")
             return False
 
 if __name__ == "__main__":
