@@ -129,15 +129,14 @@ class ClientManager:
             logger.error(f"❌ 错误: 找不到配置文件 {self.template}")
             return False
         try:
-            proxy_group = []
-            for outbound in config["outbounds"]:
-                if outbound["tag"] == "Proxy":
-                    proxy_group = outbound.get("outbounds")
-                    break
-
+        # 🎯 定点定向抓取，找不到会直接触发 StopIteration
+            proxy_group = next(o for o in config["outbounds"] if o["tag"] == "Proxy")["outbounds"]
+            urltest = next(o for o in config["outbounds"] if o["type"] == "urltest")["outbounds"]
+            
             for node in self.nodes:
                 proxy_group.append(node["tag"])
-                config["outbounds"].append(node)
+                urltest.append(node["tag"])
+                config["outbounds"].append(node)     
             # 4. 将最终生成的 JSON 配置文件写入用户独立文件夹
             unix = self.directory / "config.json"
             with open(unix, "w", encoding="utf-8") as f:
@@ -177,14 +176,14 @@ class ClientManager:
             logger.error(f"❌ 错误: 找不到配置文件 {self.template}")
             return False
         try:
-            proxy_group = []
-            for outbound in config["outbounds"]:
-                if outbound["tag"] == "Proxy":
-                    proxy_group = outbound.get("outbounds")
-                    break
+
+        # 🎯 定点定向抓取，找不到会直接触发 StopIteration
+            proxy_group = next(o for o in config["outbounds"] if o["tag"] == "Proxy")["outbounds"]
+            urltest = next(o for o in config["outbounds"] if o["type"] == "urltest")["outbounds"]
             
             for node in self.nodes:
                 proxy_group.append(node["tag"])
+                urltest.append(node["tag"])
                 config["outbounds"].append(node)     
                 
             inbounds = config.get("inbounds", [])
@@ -213,15 +212,14 @@ class ClientManager:
             logger.error(f"❌ 错误: 找不到配置文件 {self.template}")
             return False
         try:
-            proxy_group = []
-            for outbound in config["outbounds"]:
-                if outbound["tag"] == "Proxy":
-                    proxy_group = outbound.get("outbounds")
-                    break
-
+        # 🎯 定点定向抓取，找不到会直接触发 StopIteration
+            proxy_group = next(o for o in config["outbounds"] if o["tag"] == "Proxy")["outbounds"]
+            urltest = next(o for o in config["outbounds"] if o["type"] == "urltest")["outbounds"]
+            
             for node in self.nodes:
                 proxy_group.append(node["tag"])
-                config["outbounds"].append(node)
+                urltest.append(node["tag"])
+                config["outbounds"].append(node)     
             inbounds = config.get("inbounds", [])
             tun = None
             for inbound in inbounds:
