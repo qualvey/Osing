@@ -102,6 +102,8 @@ class ServiceNode:
                     ]
                 }
             }
+        one_port
+        dependent port
         """
         user_data = self.user_data
         user = {

@@ -9,6 +9,7 @@ import os
 import subprocess
 import logging
 from pathlib import Path
+import signal
 
 # from pydbus import SystemBus
 # from gi.repository import GLib
@@ -303,6 +304,7 @@ class UserService:
                 )
                 logger.info("[Success] sing-box 服务已成功全新冷启动！")
                 return True
+            
         except subprocess.CalledProcessError as e:
             # 1. 记录底层错误
             logger.error(f"[Panic] sing-box 重载命令执行失败！错误码: {e.returncode}")
