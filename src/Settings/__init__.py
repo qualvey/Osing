@@ -50,7 +50,8 @@ class Setup:
                 f"🚨 CRITICAL PANIC: 配置项 '{key}' 缺失或类型错误！\n"
                 f"期望类型: str, 实际获取: {type(val).__name__}"
             )
-        return val
+        # 防止用户在 JSON 中写了 "domain": "  example.com  " 这种带空格的值，自动帮他 trim 一下
+        return val.strip()
         
     def _load_json(self) -> None:
         """读取并解析 JSON 文件。"""
