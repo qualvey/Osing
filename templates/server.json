@@ -36,9 +36,7 @@
             "listen": "127.0.0.1:8080",
             "stats": {
                 "enabled": true,
-                "users": [
-                    "上"
-                ]
+                "users": []
             }
         }
     },
@@ -46,12 +44,8 @@
         "servers": [
             {
                 "tag": "google",
-                "type": "tls",
-                "server": "8.8.8.8",
-                "tls": {
-                    "enabled": true,
-                    "server_name": "dns.google"
-                }
+                "type": "udp",
+                "server": "8.8.8.8"
             }
         ]
     },
