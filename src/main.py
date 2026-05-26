@@ -169,6 +169,9 @@ async def main():
     
     parser_init = subparsers.add_parser("init", help="Initialize the service (backup config, etc.)")
     
+    parser_renew = subparsers.add_parser("renew", help="重新添加用户node")
+    parser_renew.add_argument("username",  help="Usernames to add")
+    
 
     parser_sync = subparsers.add_parser("sync", help="Sync from redis to /etc/sing-box/config.json")
 
@@ -186,7 +189,11 @@ async def main():
             if user is not None:
                 
                 user.disable()
-        service_config_checker.reload_service()
+    elif args.command == "renew":
+        username = args.username
+        user = await UserManager.get_user_by_name(username)
+        if user is not None:
+            user.service.merge()
         
     elif args.command == "init":
         UserService.init()
@@ -196,7 +203,6 @@ async def main():
             user = await UserManager.get_user_by_name(username)
             if user is not None:
                 await user.enable()
-        service_config_checker.reload_service()
 
     elif args.command == "remove":
         for username in args.usernames:
