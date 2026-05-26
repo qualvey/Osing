@@ -2,6 +2,7 @@ from typing import Dict, Any
 import logging
 logger = logging.getLogger(__name__)
 import copy
+import socket
 from Settings import settings
 host = settings.domain
 
@@ -23,6 +24,46 @@ class ServiceNode:
                 yield self._vless(node)
             if node.get("type") == "tuic":
                 yield self._tuic(node)
+                
+    def _get_available_port(self, raw_port) -> int:
+        """获取 8000-10000 之间且未被占用的端口"""
+        try:
+            port = int(raw_port)
+        except (TypeError, ValueError):
+            # 如果原始值不是合法数字，默认从 8000 开始找
+            port = 8000
+
+        # 1. 如果大于 10000，将其映射到 8000-10000 之间
+        if port > 10000:
+            # 方案 A（确定性映射）：利用取模，让大端口均匀分布在 8000-10000 之间
+            port = 8000 + (port % 2001)  # 2001 是因为 10000 - 8000 + 1
+            
+            # 方案 B（随机映射）：如果你更倾向于随机分配，可以解开下方注释
+            # port = random.randint(8000, 10000)
+
+        # 如果调整后的端口小于 8000，也强制拉回 8000
+        if port < 8000:
+            port = 8000
+
+        # 2. 循环检查端口是否被占用，如果被占用则递增查找
+        start_port = port
+        while self._is_port_in_use(port):
+            port += 1
+            if port > 10000:
+                port = 8000  # 如果超出范围，绕回 8000 继续找
+                
+            # 死循环保护：如果 8000-10000 全部被占满了，触发异常
+            if port == start_port:
+                raise RuntimeError("🚨 CRITICAL PANIC: 8000-10000 之间的所有端口已被占满！")
+
+        return port
+    
+    def _is_port_in_use(self,port: int) -> bool:
+        """检查本地端口是否已被监听"""
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            # try to bind to the port; if it fails, the port is in use
+            return s.connect_ex(('127.0.0.1', port)) == 0
+
         
     def _reality(self):
         return       {
@@ -59,7 +100,7 @@ class ServiceNode:
             }
         ]
         base["tag"] = self.tag+"vless"
-        base["listen_port"] = user_data.get("listen_port")
+        base["listen_port"] = self._get_available_port(self.user_data.get("listen_port"))
         base["users"] = users
         base["tls"] = tls
 
