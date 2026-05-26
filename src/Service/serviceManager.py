@@ -279,21 +279,34 @@ class UserService:
 
         # 2. 核心重载
         try:
-            # 🎯 步骤 A：直接通过 pgrep 获取 sing-box 的最老主进程 PID (-o 代表 earliest 进程)
-            # 这样可以 100% 避开 systemd 的内部状态卡死问题
+            # 🎯 步骤 A：Debug 版查找
+            # 我们先保持你原来的参数不变，但打印出底层的蛛丝马迹
             pid_process = subprocess.run(
                 ["pgrep", "-o", "sing-box"],
                 capture_output=True,
                 text=True
             )
             
+            # ==================== DEBUG LOG START ====================
+            logger.info(f"🔍 [DEBUG] pgrep 执行完毕。")
+            logger.info(f"🔍 [DEBUG] Return Code (状态码): {pid_process.returncode}")
+            logger.info(f"🔍 [DEBUG] Stdout (标准输出): '{pid_process.stdout}'")
+            logger.info(f"🔍 [DEBUG] Stderr (错误信息): '{pid_process.stderr}'")
+            # ==================== DEBUG LOG END ======================
+            
             if pid_process.returncode == 0 and pid_process.stdout.strip():
                 pid = int(pid_process.stdout.strip())
                 
                 # 🎯 步骤 B：直接向进程发送 SIGHUP (等同于 kill -HUP <PID>)
                 # sing-box 收到这个原生信号会立刻在内部平滑热重载配置，Systemd 连拦截的机会都没有
-                os.kill(pid, signal.SIGHUP)
-                logger.info(f"[Success] 绕过 Systemd 状态机，成功通过原生 SIGHUP 信号热重载进程 (PID: {pid})！")
+               
+                subprocess.run(
+                    ["sudo", "kill", "-HUP", str(pid)],
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
+                logger.info(f"[Success] 绕过 Systemd 状态机，成功通过 sudo SIGHUP 信号热重载进程 (PID: {pid})！")
                 return True
                 
             else:
