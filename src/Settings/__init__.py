@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, List
 import os
+import json_repair
 
 
 logger = logging.getLogger(__name__)
@@ -61,10 +62,18 @@ class Setup:
 
         try:
             with open(self.file_path, "r", encoding="utf-8") as f:
-                self._config_data = json.load(f)
+                parsed_data = json_repair.load(f)
+        
+                # 2. 显式类型检查（Pylance 看到这里会自动将类型收窄为 dict）
+                if not isinstance(parsed_data, dict):
+                    raise TypeError(
+                        f"🚨 配置解析错误：预期根节点为 JSON 对象(dict)，"
+                        f"实际解析得到了: {type(parsed_data).__name__}"
+                    )
+                self._config_data = parsed_data  # 存储原始解析结果
                 
                 # --- 1. 核心改进：把第一层的所有配置动态挂载到实例属性上 ---
-                for key, value in self._config_data.items():
+                for key, value in parsed_data.items():
                     setattr(self, key, value)
                 
                 # --- 2. 修正原代码中与 config.json 键名不匹配的 Bug ---

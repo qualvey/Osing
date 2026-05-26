@@ -26,9 +26,10 @@
         "X-Content-Type-Options": "nosniff"
     },
     "nodes": [
-        {
-            "type": "vless"
-        },
+        //先不用vless
+        // {
+        //     "type": "vless"
+        // },
         {
             "type": "tuic",
             "congestion_control": "bbr"

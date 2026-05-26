@@ -100,6 +100,7 @@ class UserService:
                 # 确保 inbounds 字典存在
             if "inbounds" not in config:
                 config["inbounds"] = []
+                
             nodes = self.node.generate()
             
             for node in nodes:
