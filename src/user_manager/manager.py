@@ -221,6 +221,17 @@ class UserManager:
             "comment": comment,
             "created_at": datetime.datetime.now().isoformat()
         }
+        
+    @classmethod
+    def new_user_from_data( cls,user_data: dict) -> "UserManager":
+        instance = cls(_from_factory=True)
+        
+        instance.userData = user_data
+        instance.service = UserService(user_data)
+        instance.client = ClientManager(user_data)
+        instance.is_persisted = True
+        
+        return instance
 
     def save(self):
         service_merged = False

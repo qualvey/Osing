@@ -3,7 +3,7 @@
 #logging初始化要在最开头，下面的导包里如果也用了logging，就会抢先，下面的config就没有用了
 import logging
 import sys
-
+import time
 logging.basicConfig(
     level=logging.DEBUG, # 屏幕上只看 INFO 及以上
     format="%(asctime)s [%(levelname)s] (%(name)s)[%(funcName)s:%(lineno)d]%(message)s", # [%(name)s] 可以看出是哪个模块打印的
@@ -112,6 +112,15 @@ async def _sync():
         
 def sync():
     asyncio.run(_sync())
+    
+ # TODO 迁移用户   
+def add_user_mannully():
+    user_datas = []
+    for user_data in user_datas:
+        user = UserManager.new_user_from_data(user_data)
+        user.save()
+        time.sleep(2)
+
 
 async def main():
     root_path = get_project_root()

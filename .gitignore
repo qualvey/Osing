@@ -13,3 +13,4 @@ app.log
 access.log
 uv.lock
 proxy_users.db
+my_userdata.json
