@@ -249,7 +249,7 @@ class ClientManager:
             except (KeyError, TypeError) as e:
                 logging.error(f"route.rule数据结构错误: {e}")
             # 4. 将最终生成的 JSON 配置文件写入用户独立文件夹
-            file = self.directory / "android.json"
+            file = self.directory / "sfa.json"
             with open(file, "w", encoding="utf-8") as f:
                 json.dump(config, f, indent=4, ensure_ascii=False)
         except Exception as e:
