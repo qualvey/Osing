@@ -21,31 +21,17 @@
         "servers": [
             {
                 "tag": "google",
-                "type": "tls",
+                "type": "udp",
                 "server": "8.8.8.8",
-                "tls": {
-                    "enabled": true,
-                    "server_name": "dns.google"
-                },
                 "detour": "Proxy"
             },
             {
                 "tag": "ali",
                 "type": "udp",
                 "server": "223.5.5.5"
-            },
-            {
-                "tag": "lan",
-                "type": "local"
             }
         ],
         "rules": [
-            {
-                "domain_suffix": [
-                    ".lan"
-                ],
-                "server": "lan"
-            },
             {
                 "rule_set": [
                     "blocklist"
@@ -166,8 +152,11 @@
         },
         "rules": [
             {
-                "action": "sniff",
-                "timeout": "300ms"
+                "action": "sniff"
+            },
+            {
+                "port": 853,
+                "outbound": "Proxy"
             },
             {
                 "rule_set": [
@@ -178,19 +167,24 @@
                 "no_drop": true
             },
             {
-                //dns with tls 无法sniff，无法分流，只能一刀切
-                //fallback 进传统dns,可以分流
-                "port": 853,
-                "action": "reject"
+                //P2P没有意义走代理，反而增加延迟
+                "protocol": "bittorrent",
+                "outbound": "direct"
             },
             {
-                //2.
-                //把非国内的stun按住
-                //为什么不是分流，而是白名单模式？
-                //解释:
-                //STUN 的唯一目的就是为了实现 P2P（点对点）连接。
-                //就算走代理也不可能P2P,所以这个不存在代理
-                //你在一个 UDP 隧道（TUIC）里，跑另一个 UDP 探测协议（STUN）。
+                "type": "logical",
+                "mode": "or",
+                "rules": [
+                    {
+                        "port": 53
+                    },
+                    {
+                        "protocol": "dns"
+                    }
+                ],
+                "action": "hijack-dns"
+            },
+            {
                 "type": "logical",
                 "mode": "and",
                 "rules": [
@@ -213,31 +207,12 @@
                 "action": "reject"
             },
             {
-                //P2P 的核心是双向通信，而普通代理只有单向出站。
-                //P2P 下载需要你既能“找别人”（出站），也能让“别人找你”（入站）。
-                "protocol": "bittorrent",
-                "outbound": "direct"
-            },
-            {
                 "clash_mode": "direct",
                 "outbound": "direct"
             },
             {
                 "clash_mode": "global",
                 "outbound": "Proxy"
-            },
-            {
-                "type": "logical",
-                "mode": "or",
-                "rules": [
-                    {
-                        "port": 53
-                    },
-                    {
-                        "protocol": "dns"
-                    }
-                ],
-                "action": "hijack-dns"
             },
             {
                 "type": "logical",
