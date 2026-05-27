@@ -238,16 +238,17 @@ class ClientManager:
 
             # 2. 添加 WiFi 规则
             dns_rule = config.get("dns").get("rules")
-            try:
-                # 直接通过 key 访问，如果键不存在会触发 KeyError
-                route_rule = config["route"]["rules"]
-                if not isinstance(route_rule, list):
-                    raise TypeError("rules must be a list")
-                route_rule.insert(1, WIFI_RULE)
-                #根据业务逻辑决定是抛出异常还是初始化默认值
-                logging.info("   [SFA] 已添加 WiFi 策略规则")
-            except (KeyError, TypeError) as e:
-                logging.error(f"route.rule数据结构错误: {e}")
+            # try:
+            #     # 直接通过 key 访问，如果键不存在会触发 KeyError
+            #     route_rule = config["route"]["rules"]
+            #     if not isinstance(route_rule, list):
+            #         raise TypeError("rules must be a list")
+            #     route_rule.insert(1, WIFI_RULE)
+            #     #根据业务逻辑决定是抛出异常还是初始化默认值
+            #     logging.info("   [SFA] 已添加 WiFi 策略规则")
+            # except (KeyError, TypeError) as e:
+            #     logging.error(f"route.rule数据结构错误: {e}")
+                
             # 4. 将最终生成的 JSON 配置文件写入用户独立文件夹
             file = self.directory / "sfa.json"
             with open(file, "w", encoding="utf-8") as f:
