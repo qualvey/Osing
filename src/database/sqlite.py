@@ -251,13 +251,30 @@ class ProxyUserDB:
 
     # --- 核心需求 2：通过 name -> alldata ---
     def get_alldata_by_name(self, username: str) -> Optional[Dict[str, Any]]:
+        """
+        通过用户名获取用户的完整数据字典（对接登录系统）
+        """
         with sqlite3.connect(self.db_path) as conn:
+            # 允许通过列名访问：row['uuid'] 而不是 row[1]
             conn.row_factory = sqlite3.Row
             
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE name = ?", (username,))
             row = cursor.fetchone()
-            return json.loads(row[0]) if row else None
+            
+            if not row:
+                return None
+                
+            # ─── 核心修复：将 sqlite3.Row 完美转换为标准 Python 字典 ───
+            user_dict = dict(row)
+            
+            # ─── 健壮性防御：向后兼容机制 ───
+            # 如果你还没来得及执行 ALTER TABLE 增加字段，代码也不会崩，
+            # 它会自动垫一个 None，防止接下来的登录逻辑报 KeyError
+            if "password_hash" not in user_dict:
+                user_dict["password_hash"] = None
+                
+            return user_dict
         
     def get_all_users(self) -> List[Dict[str, Any]]:
 
