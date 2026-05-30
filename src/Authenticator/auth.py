@@ -9,6 +9,9 @@ from fastapi.responses import FileResponse
 from database.sqlite import db
 from Settings import settings
 from Client.manager import ClientManager
+from fastapi import HTTPException, status
+from fastapi.responses import FileResponse
+from urllib.parse import quote
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -99,10 +102,39 @@ async def check_auth(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"请求的配置文件 '{file}' 未找到"
             )
+        
         logger.info(f"from: {client_ip},UUID [{clientM.user_data.get('uuid')}], 用户名: {clientM.user_data.get('name')}, 返回文件: {target_file}")
+        
+        # --- 🛠️ 核心修改：针对 clash.yaml 动态注入 Clash 规范响应头 ---
+        custom_headers = {}
+        
+        if file == "clash.yaml":
+            # 1. 配置文件名（支持中文，防止客户端乱码）
+            profile_name = "自由以太"
+            encoded_name = quote(profile_name)
+            custom_headers["content-disposition"] = f"attachment; filename*=UTF-8''{encoded_name}"
+            
+            # 2. 自动更新周期（单位：小时）
+            custom_headers["profile-update-interval"] = "24"
+            
+            # 3. 流量与到期信息（动态从 clientM 读取或设为固定值，单位：Byte）
+            # 这里的 100GB 只是举例，你可以从 clientM.user_data 动态算出来
+            upload = 10 * 1024 * 1024 * 1024
+            download = 40 * 1024 * 1024 * 1024
+            total = 500 * 1024 * 1024 * 1024
+            expire = 1780000000
+            custom_headers["subscription-userinfo"] = f"upload={upload}; download={download}; total={total}; expire={expire}"
+            
+            # 4. 右键卡片点击首页跳转的 URL
+            custom_headers["profile-web-page-url"] = "https://cn2.ryugo.org"
+            
+            logger.info(f"已成功为 '{file}' 注入 Clash 订阅规范响应头。")
+
+        # 返回文件时，把 custom_headers 传给 headers 参数
         return FileResponse(
             path=str(target_file),
-            filename=target_file.name
+            filename=target_file.name,
+            headers=custom_headers if custom_headers else None
         )
     else:
         logger.info(f"用户未指定文件参数，启用 UA 卫语句策略解析目标文件。User-Agent: '{user_agent}'")
