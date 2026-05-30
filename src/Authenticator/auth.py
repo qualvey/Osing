@@ -88,6 +88,7 @@ async def check_auth(
     clientM , client_ip = MetaData
     # 2. 根据 UA 决定具体的文件名（返回字符串，例如 "sfa.json"）
     if file:
+        logger.info(f"用户指定了文件参数: '{file}'，优先级最高，直接使用它来定位配置文件。")
         # 优先级最高：如果用户传了 ?file=xxx，直接用它
         target_file = clientM.directory / file
         
@@ -103,6 +104,7 @@ async def check_auth(
             filename=target_file.name
         )
     else:
+        logger.info(f"用户未指定文件参数，启用 UA 卫语句策略解析目标文件。User-Agent: '{user_agent}'")
         # 优先级次之：如果没有传 file 参数，走你的 UA 卫语句策略
         target_file = Which_file(user_agent)
     
