@@ -73,6 +73,7 @@ async def get_authenticated_user(
     if not user:
         logger.warning(f"🚫 拒绝：无效或已过期的 Token [{auth_token[:8]}...]，拦截自 IP: [{client_ip}]")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid authentication token")
+    logger.info(f"✅ 认证成功：用户 [{user['name']}]，UUID [{user['uuid']}], 来自 IP: [{client_ip}]")
     clientM = ClientManager(user)
 
     return clientM, client_ip
