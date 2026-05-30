@@ -1,7 +1,7 @@
-#校验uuid(token)，返回文件
-#甚至可以做后台管理的API
+
 import logging
 import re
+import bcrypt  
 from typing import Optional, Tuple
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Query, Request, status, Depends
@@ -12,11 +12,68 @@ from Client.manager import ClientManager
 from fastapi import HTTPException, status
 from fastapi.responses import FileResponse
 from urllib.parse import quote
+from pydantic import BaseModel
 
+from fastapi.middleware.cors import CORSMiddleware
 logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI(title="backend 容器化客户端分发中心")
+# 在创建 app = FastAPI() 之后立即添加
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://vite.wowoha.top"], # 👈 显式允许你的前端域名访问
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# 初始化密码加密上下文（使用安全标准的 bcrypt 算法）
+class UserLoginSchema(BaseModel):
+    username: str
+    password: str
 
+class LoginResponseSchema(BaseModel):
+    message: str
+    token: str  # 这里的 token 实际上就是用户的 UUID
+    username: str
+    
+
+@app.post("/login")
+async def login(login_data: UserLoginSchema, request: Request):
+    logger.info(f"🔐 登录尝试：用户名 [{login_data.username}]，来自 IP: [{request.client.host if request.client else '未知'}]")
+    client_ip = request.headers.get("X-Real-IP") or (request.client.host if request.client else "127.0.0.1")
+    
+    # 1. 直接获取完整的用户数据字典
+    user = db.get_alldata_by_name(login_data.username)
+    if not user:
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+    
+    # 2. 安全取出密码（哪怕没加字段，上面加了兜底，这里也是 None）
+    db_password_hash = user.get("password_hash")
+    if not db_password_hash:
+        logger.error(f"❌ 账户异常：用户 [{login_data.username}] 在数据库中尚未配置 password_hash")
+        raise HTTPException(status_code=500, detail="该账户未设置密码，请联系管理员")
+
+    # 3. ─── 核心修改：改用原生 bcrypt 校验密码，避开 Python 3.13 兼容坑 ───
+    try:
+        is_password_correct = bcrypt.checkpw(
+            login_data.password.encode('utf-8'),      # 前端传过来的明文密码
+            db_password_hash.encode('utf-8')          # 数据库存的 $2b$12$... 哈希串
+        )
+    except Exception as e:
+        logger.error(f"❌ 密码哈希校验时发生非预期错误: {str(e)}")
+        raise HTTPException(status_code=500, detail="服务器内部错误")
+
+    if not is_password_correct:
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+        
+    # 4. 验证通过，直接返回他原本就在使用的 UUID
+    logger.info(f"🚀 登录成功：用户 [{user['name']}] 已验证通过，分发 UUID。")
+    return {
+        "message": "登录成功",
+        "token": user["uuid"],  # 直接从字典里拿已有的 uuid 丢给前端
+        "username": user["name"]
+    }
+    
 def get_version(version_str: str) -> Tuple[int, ...]:
     """版本号精确解析器"""
     try:
