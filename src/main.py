@@ -119,8 +119,7 @@ def add_user_mannully():
     for user_data in user_datas:
         user = UserManager.new_user_from_data(user_data)
         user.save()
-        time.sleep(2)
-
+        time.sleep(1)
 
 async def main():
     root_path = get_project_root()

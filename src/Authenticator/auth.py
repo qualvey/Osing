@@ -1,7 +1,6 @@
 #校验uuid(token)，返回文件
 #甚至可以做后台管理的API
 import logging
-import time
 import re
 from typing import Optional, Tuple
 import uvicorn
@@ -11,11 +10,7 @@ from database.sqlite import db
 from Settings import settings
 from Client.manager import ClientManager
 
-# logger = logging.getLogger(__name__)
-# FastAPI 默认使用 "uvicorn.error" 这个 logger 来输出错误和访问日志，所以我们直接获取那个 logger 就好
 logger = logging.getLogger("uvicorn.error")
-# logger.setLevel(logging.DEBUG)  # 设置日志级别为 DEBUG，确保所有级别的日志都能被捕获
-# logger.propagate = False
 
 app = FastAPI(title="backend 容器化客户端分发中心")
 
@@ -27,7 +22,7 @@ def get_version(version_str: str) -> Tuple[int, ...]:
         logger.warning(f"无法解析的版本号字符串: '{version_str}'")
         return (0, 0, 0)
 
-def response(ua: str) -> str:
+def Which_file(ua: str) -> str:
     """卫语句重构：根据 UA 纯粹、无冲突地决定物理文件名"""
     ua_lower = ua.lower()
 
@@ -42,7 +37,7 @@ def response(ua: str) -> str:
     if "sfa" in ua_lower or "android" in ua_lower:
         match = re.search(r"SFA/([\d\.]+)", ua, re.IGNORECASE)
         if match and get_version(match.group(1)) > (1, 12, 0):
-            return "sfa.json"
+            return "android.json"
         return "sfa_1.11.json"
 
     # 策略 C: Linux 分支
@@ -55,6 +50,7 @@ def response(ua: str) -> str:
 # 3. 依赖注入：门禁卡人肉掏出和查表逻辑，剥离成独立高内聚函数
 async def get_authenticated_user(
     request: Request,
+    
     token: Optional[str] = Query(None),
     x_token: Optional[str] = Header(None, alias="X-Token"),
     x_real_ip: Optional[str] = Header(None, alias="X-Real-IP")
@@ -83,6 +79,7 @@ async def get_authenticated_user(
 
 @app.get("/{full_path:path}")
 async def check_auth(
+    file: Optional[str] = Query(None),
     MetaData: Tuple[ClientManager, str] = Depends(get_authenticated_user),
     user_agent: str = Header("", alias="User-Agent")
     # 1. 延续我们上一节聊的生命周期：直接Depends拿到合法的 clientM 实例
@@ -90,11 +87,28 @@ async def check_auth(
     """主认证分发端点：安全解析 Path 对象并流式返回"""
     clientM , client_ip = MetaData
     # 2. 根据 UA 决定具体的文件名（返回字符串，例如 "sfa.json"）
-    real_file_name = response(user_agent)
+    if file:
+        # 优先级最高：如果用户传了 ?file=xxx，直接用它
+        target_file = clientM.directory / file
+        
+        # 🔍 核心防错机制：检查文件在硬盘上是否存在，且必须是文件（而不是目录）
+        if not target_file.is_file():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"请求的配置文件 '{file}' 未找到"
+            )
+        logger.info(f"from: {client_ip},UUID [{clientM.user_data.get('uuid')}], 用户名: {clientM.user_data.get('name')}, 返回文件: {target_file}")
+        return FileResponse(
+            path=str(target_file),
+            filename=target_file.name
+        )
+    else:
+        # 优先级次之：如果没有传 file 参数，走你的 UA 卫语句策略
+        target_file = Which_file(user_agent)
     
     # 3. 硬核 Path 拼接：利用 pathlib.Path 的 / 符号在内存中安全拼装
     # clientM.directory 是 Path 对象，real_file_name 是字符串，两者用 / 拼装后，依然是个完美的 Path 对象
-    config_file_path = clientM.directory / real_file_name
+    config_file_path = clientM.directory / target_file
 
     # 4. 物理防御防御：确保文件真实存在（Path 对象自带 .exists() 方法，极度优雅）
     if not config_file_path.exists():

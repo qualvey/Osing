@@ -1,3 +1,20 @@
+Metadata-Version: 2.4
+Name: Osing
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.13
+Description-Content-Type: text/markdown
+Requires-Dist: pypinyin>=0.55.0
+Requires-Dist: jstyleson
+Requires-Dist: pydbus
+Requires-Dist: pytest>=9.0.2
+Requires-Dist: rich
+Requires-Dist: aioconsole>=0.8.2
+Requires-Dist: fastapi>=0.136.1
+Requires-Dist: uvicorn>=0.47.0
+Requires-Dist: pyyaml>=6.0.3
+Requires-Dist: json-repair>=0.59.10
+
 # Sing-box 节点管理系统
 为了快速配置vless和tuic节点，并产生分发订阅
 
@@ -27,10 +44,10 @@ uv sync
 
 ## How to use
 
-###  Init
+## Init
 
-
-#### Setup config.json
+Warning: If you already have a wokring instance.Just for adding nodes,skip this step.
+### Setup config.json
 
 Edit the file with your favorate editor,etc.vim.
 `config.json`
@@ -42,11 +59,7 @@ Edit the file with your favorate editor,etc.vim.
     "email": "Used for acme to request tls cert",
     "cloudflare_key": "For dns01 chalange to get tls cert"
 ```
-
-#### run init process
-
-Warning: This operation will cover the `/etc/sing-box/config.json` file.If you already have a wokring instance.Just for adding nodes,skip this step.
-
+### run init process
 ```bash
 uv run src/main.py init
 ```
@@ -54,19 +67,11 @@ uv run src/main.py init
 ### Add user
 
 ```bash
-uv run src/main.py add username
+uv run src/main.py username
 ```
-
-### Remove an user
+### Client config server
 
 ```bash
-uv run src/main.py remove username
+uv run src/serve.py
 ```
-
-### Install client subscription server
-
-```bash
-./install.sh
-```
-
-the server will listen to localhost:9000,accept ` file?token={uuid}` param to authenticate
+listen in 9000,

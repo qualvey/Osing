@@ -1,0 +1,10 @@
+pypinyin>=0.55.0
+jstyleson
+pydbus
+pytest>=9.0.2
+rich
+aioconsole>=0.8.2
+fastapi>=0.136.1
+uvicorn>=0.47.0
+pyyaml>=6.0.3
+json-repair>=0.59.10

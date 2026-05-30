@@ -290,4 +290,3 @@ class ProxyUserDB:
             return cursor.rowcount > 0
         
 db = ProxyUserDB()
-#

@@ -1,1 +1,6 @@
-检查是否有v2ray_api,没有就自动添加
+## Nginx 顺手配置上
+
+
+`~！
+
+config-> first_jump应该配合中转端口

@@ -58,8 +58,9 @@ class ClientNode:
                 }
             }
         base["server"] = settings.firstJump
-        base["server_port"] = user_data.get("listen_port")        
         base["tag"] = node_tag +"vless"
+        
+        base["server_port"] = user_data.get("listen_port")        
         base["uuid"] = user_data.get("uuid")
         base["tls"] = tls
         base["tls"]["server_name"] = host

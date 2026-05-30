@@ -108,6 +108,7 @@ class UserService:
              # 3. 写回文件
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 jstyleson.dump(config, f, indent=4, ensure_ascii=False)
+            
             self.reload()
             
             logger.info(f"✅ [Service] 服务端主配置文件已成功更新。")
