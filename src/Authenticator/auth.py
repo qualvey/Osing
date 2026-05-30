@@ -117,13 +117,13 @@ async def check_auth(
             # 2. 自动更新周期（单位：小时）
             custom_headers["profile-update-interval"] = "24"
             
-            # 3. 流量与到期信息（动态从 clientM 读取或设为固定值，单位：Byte）
-            # 这里的 100GB 只是举例，你可以从 clientM.user_data 动态算出来
-            upload = 10 * 1024 * 1024 * 1024
-            download = 40 * 1024 * 1024 * 1024
-            total = 500 * 1024 * 1024 * 1024
-            expire = 1780000000
-            custom_headers["subscription-userinfo"] = f"upload={upload}; download={download}; total={total}; expire={expire}"
+            # # 3. 流量与到期信息（动态从 clientM 读取或设为固定值，单位：Byte）
+            # # 这里的 100GB 只是举例，你可以从 clientM.user_data 动态算出来
+            # upload = 10 * 1024 * 1024 * 1024
+            # download = 40 * 1024 * 1024 * 1024
+            # total = 500 * 1024 * 1024 * 1024
+            # expire = 1780000000
+            # custom_headers["subscription-userinfo"] = f"upload={upload}; download={download}; total={total}; expire={expire}"
             
             # 4. 右键卡片点击首页跳转的 URL
             custom_headers["profile-web-page-url"] = "https://cn2.ryugo.org"
