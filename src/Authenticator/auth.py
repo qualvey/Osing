@@ -149,9 +149,10 @@ async def check_auth(
     clientM , client_ip = MetaData
     # 2. 根据 UA 决定具体的文件名（返回字符串，例如 "sfa.json"）
     if file:
-        logger.info(f"用户指定了文件参数: '{file}'，优先级最高，直接使用它来定位配置文件。")
         # 优先级最高：如果用户传了 ?file=xxx，直接用它
         target_file = clientM.directory / file
+        logger.info(f"用户指定了文件参数: '{file}', 将直接尝试访问: {target_file}")
+        
         
         # 🔍 核心防错机制：检查文件在硬盘上是否存在，且必须是文件（而不是目录）
         if not target_file.is_file():
