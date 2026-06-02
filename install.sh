@@ -66,3 +66,7 @@ echo "------------------------------------------------"
 echo "查看状态命令: sudo systemctl status $SERVICE_NAME"
 echo "查看实时日志: journalctl -u $SERVICE_NAME -f"
 echo "------------------------------------------------"
+
+echo "正在开启bbr"
+echo -e "net.core.default_qdisc=fq\nnet.ipv4.tcp_congestion_control=bbr" | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+echo "✅ BBR 已成功开启！"
