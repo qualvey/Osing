@@ -246,7 +246,7 @@ class UserManager:
                 client_added = True
 
             self.is_persisted = True
-            logger.info(f"🎉 [UserManager] 用户 {self.userData.get('name')} 的铁三角原子配置全线成功！")
+            logger.info(f"用户 {self.userData.get('name')} 的铁三角原子配置全线成功！")
             return True
         except Exception as e:
             logger.error(f"事务回滚: {e}")

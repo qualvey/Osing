@@ -232,7 +232,6 @@ async def main():
             new_user = await UserManager.add(username)
             if new_user:
                 new_user.save()
-                new_user.service.reload()
                 # service_config_checker.reload_service()
                 
                 print("-" * 30)
