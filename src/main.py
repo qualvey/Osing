@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 from user_manager    import UserManager
 from Checker import ConfigChecker
-from database.sqlite import db
+from database import db
 from Settings import settings
 import jstyleson
 import asyncio
@@ -227,6 +227,8 @@ async def main():
         case "disable":
             for username in args.usernames:
                 user_datas = db.get_all_users_by_name(username)
+                if not user_datas:
+                    logger.error("no such user")
                 for user_data in user_datas:
                     user = UserManager.create_from_data(user_data=user_data)
                     if user is not None:
@@ -324,6 +326,7 @@ async def main():
         case  "init":
             logger.info("初始化，将会:\n覆盖/etc/sing-box/config.json为初始模板")
             UserService.init()
+            
         case "modify":
             pinyin_name = args.pinyin_name
             await manager.modify(pinyin_name)
