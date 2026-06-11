@@ -275,6 +275,7 @@ class UserManager:
         # 断言 uuid 绝对不能为 None，否则直接 panic 并打印后面的错误信息
         assert isinstance(uuid, str), "panic"
         db.set_user_enabled(uuid, False)
+        self.service.purge()
 
     async def enable(self):
         """启用用户：从 Redis 恢复数据到配置文件"""
