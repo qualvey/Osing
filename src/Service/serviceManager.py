@@ -14,21 +14,30 @@ import signal
 # from pydbus import SystemBus
 # from gi.repository import GLib
 logger = logging.getLogger(__name__)
-
+config_path =  Path(settings.server_config_path)
 domain = settings.domain
 transport_path = settings.transport_path
-config_path = Path(settings.server_config_path)
-bak_path = config_path.with_suffix(".json.bak")
 tmp_path = "/tmp/sing-box-config.json"
 
 class UserService:
     def __init__(self,user_data: dict) -> None:
         self.user = user_data
-        self.config_path = config_path
         self.node = ServiceNode(user_data)
         self.service_name = "sing-box.service"
-        self.bak_path = bak_path
-    
+
+    # 🌟 1. 动态服务端配置路径（严格写在类顶层）
+    @property
+    def config_path(self):
+        from Settings import settings
+        # 顺便确保它是个 Path 对象，方便后面调用 .with_suffix()
+        from pathlib import Path
+        return Path(settings.server_config_path)
+
+    # 🌟 2. 动态备份文件路径
+    @property
+    def bak_path(self):
+        # 每次调用 .bak_path 时，它都会实时基于最新最正确的 config_path 去计算后缀！
+        return self.config_path.with_suffix(".json.bak")
     #TODO 全新的服务器部署
     @staticmethod
     def init():
@@ -81,6 +90,7 @@ class UserService:
         
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
+                logger.debug(f"Opened config,path {self.config_path}")
                 config = jstyleson.load(f)
                 
                 if config["experimental"].get("v2ray_api"):
@@ -281,6 +291,7 @@ class UserService:
     def reload(self):
         # 1. 严格校验
         valid = self.validate_config()
+        
         if not valid:
             logger.warning("[Reload] 新配置校验失败，正在启动回滚流程...")
             self.rollback()
