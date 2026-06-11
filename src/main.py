@@ -189,86 +189,77 @@ async def main():
 
     args = parser.parse_args()
 
-    if args.command == "list":
-        await _list()
-    elif args.command == "disable":
-        for username in args.usernames:
-            user = await UserManager.get_user_by_name(username)
-            if user is not None:
-                
-                user.disable()
-    elif args.command == "renew":
-        username = args.username
-        user = await UserManager.get_user_by_name(username)
-        if user is not None:
-            user.service.merge()
-        
-    elif args.command == "init":
-        UserService.init()
-
-    elif args.command == "enable":
-        for username in args.usernames:
-            user = await UserManager.get_user_by_name(username)
-            if user is not None:
-                await user.enable()
-
-    elif args.command == "remove":
-        for username in args.usernames:
-            user = await UserManager.get_user_by_name(username)
-            if user is not None:
-                user.perge()
-            else:
-                logger.error(f"❌ 用户 {username} 不存在")
-                
-    elif args.command == "get":
-        user = await UserManager.get_user_by_name(args.usernames[0])
-        if user:
-            info =  user.userData
-            print(info)
+    match args.command:
+        case "list":
+            await _list()
             
-    elif args.command in ["add", "update"]:
-        print(f"DEBUG: 接收到的所有用户名列表是 -> {args.usernames}")
-        for username in args.usernames:
-            new_user = await UserManager.add(username)
-            if new_user:
-                new_user.save()
-                # service_config_checker.reload_service()
-                
-                print("-" * 30)
-                print(f"最终生成的用户信息 ({username}):")
-                print(json.dumps(new_user.userData, indent=4, ensure_ascii=False))
-            else:
-                logger.error("用户创建失败")
-                
-    elif args.command == "refreshAll":
-        users = db.get_all_users()
-        
-        for user in users:
-            uuid =user.get("uuid")
-            assert isinstance(uuid,str), "panic, user has no uuid"
-            user = await UserManager.bind_with_uuid(uuid)
-            #db,service,client
-            # TODO 
-            user.client.add()
-        
-        # config_updater = ConfigUpdater(TEMPLATE_Config, IOS_Config, all_data)
-        # config_updater.update()   
-                 
-    elif args.command == "refresh":
-        logging.info(f"正在刷新用户配置: {args.username}")
-        users = []
-        for username in args.username:
-            user_data = await manager.get_user_info(username)
-            if user_data:
-                users.append(user_data)
-        for user_data in users:
-            generator = ConfigGenerator(TEMPLATE_Config, IOS_Config, userdata=user_data)
-            generator.run()
-    elif args.command == "modify":
-        pinyin_name = args.pinyin_name
-        await manager.modify(pinyin_name)
-    elif args.command == "sync":
-        await manager.sync_from_redis()
+        case "disable":
+            for username in args.usernames:
+                user = await UserManager.get_user_by_name(username)
+                if user is not None:
+                    user.disable()
+                    
+        case "enable":
+            for username in args.usernames:
+                user = await UserManager.get_user_by_name(username)
+                if user is not None:
+                    await user.enable()
+        case "remove":
+            for username in args.usernames: 
+                user = await UserManager.get_user_by_name(username)
+                if user is not None:
+                    user.perge()
+                else:
+                    logger.error(f"❌ 用户 {username} 不存在")
+        case "renew":
+            username = args.username
+            user = await UserManager.get_user_by_name(username)
+            if user is not None:
+                user.service.merge()
+        case "get":
+            user = await UserManager.get_user_by_name(args.usernames[0])
+            if user:
+                info =  user.userData
+                print(info)
+        case "add" | "update":
+            print(f"DEBUG: 接收到的所有用户名列表是 -> {args.usernames}")
+            for username in args.usernames:
+                new_user = await UserManager.add(username)
+                if new_user:
+                    new_user.save()
+                    # service_config_checker.reload_service()
+                    
+                    print("-" * 30)
+                    print(f"最终生成的用户信息 ({username}):")
+                    print(json.dumps(new_user.userData, indent=4, ensure_ascii=False))
+                else:
+                    logger.error("用户创建失败")
+                    
+        case "refreshAll":
+            users = db.get_all_users()
+            for user in users:
+                uuid =user.get("uuid")
+                assert isinstance(uuid,str), "panic, user has no uuid"
+                user = await UserManager.bind_with_uuid(uuid)
+                #db,service,client
+                # TODO 
+                user.client.add()
+        case "refresh":
+            logging.info(f"正在刷新用户配置: {args.username}")
+            users = []
+            for username in args.username:
+                user_data = await manager.get_user_info(username)
+                if user_data:
+                    users.append(user_data)
+            for user_data in users:
+                generator = ConfigGenerator(TEMPLATE_Config, IOS_Config, userdata=user_data)
+                generator.run()
+        case "modify":
+            pinyin_name = args.pinyin_name
+            await manager.modify(pinyin_name)
+        case "sync":
+            await manager.sync_from_redis()
+
             
 
 def run ():
