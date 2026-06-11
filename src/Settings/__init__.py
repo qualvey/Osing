@@ -5,7 +5,6 @@ from typing import Any, Dict, Optional, List
 import os
 import json_repair
 
-
 logger = logging.getLogger(__name__)
 
 class Setup:
@@ -13,6 +12,7 @@ class Setup:
     transport: Dict[str, Any]
     reality: Dict[str, Any]
     nodes: List[Dict[str, Any]]
+    
     def __init__(self, filename: str = "config.json"):
         
         self.filename = filename
@@ -25,7 +25,8 @@ class Setup:
         
         # 存储原始解析后的参数
         self._config_data: Dict[str, Any] = {}
-        
+        self.sqlite_db_path = "user.db"
+
         # 初始化时自动加载
         # 属性挂载和必填项解析完毕后，进行整体合法性校验
         self.check_settings()
@@ -86,7 +87,7 @@ class Setup:
                 # 默认值处理
                 self.server_config_path = self._config_data.get("server_config_path") or "/etc/sing-box/config.json"
                 self.enable_exlude_package = self._config_data.get("enable_exlude_package") or False
-                
+                self.sqlite_db_path = self._config_data.get("sqlite_db_path")
                 # 特殊处理：原代码提取了 transport_path，但 json 里它在嵌套的 transport 内部
                 transport_dict = self._config_data.get("transport", {})
                 if isinstance(transport_dict, dict):
