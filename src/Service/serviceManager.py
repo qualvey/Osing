@@ -78,12 +78,19 @@ class UserService:
         except Exception as e:
             logger.error(f"❌ [Service] 备份主配置文件失败，放弃后续操作: {e}")
             raise e # 往外抛，阻止事务继续
+        
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 config = jstyleson.load(f)
                 
                 if config["experimental"].get("v2ray_api"):
-                    config["experimental"]["v2ray_api"]["stats"]["users"].append(self.user.get("name"))
+                    user_list = config["experimental"]["v2ray_api"]["stats"]["users"]
+                    current_name = self.user.get("name")
+                    
+                    # 确保原数组没有这个 name 才可以添加
+                    if current_name not in user_list:
+                        user_list.append(current_name)
+                        
                 else: 
                     v2ray_api = {
                         "listen": "127.0.0.1:8080",
@@ -104,7 +111,9 @@ class UserService:
             nodes = self.node.generate()
             
             for node in nodes:
-                config["inbounds"].append(node)
+                # 只有当原数组没有这个 node 时才添加
+                if node not in config["inbounds"]:
+                    config["inbounds"].append(node)
              # 3. 写回文件
             with open(self.config_path, 'w', encoding='utf-8') as f:
                 jstyleson.dump(config, f, indent=4, ensure_ascii=False)
