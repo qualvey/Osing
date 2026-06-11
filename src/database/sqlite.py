@@ -306,4 +306,3 @@ class ProxyUserDB:
             # 如果变动行数大于 0，说明成功删除了用户；如果为 0，说明原本就没有这个 uuid
             return cursor.rowcount > 0
         
-db = ProxyUserDB()
