@@ -30,3 +30,12 @@ packages = ["src"]
 
 [tool.hatch.build.targets.wheel.sources]
 "src" = ""
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+# 🌟 告诉 pytest 遇到 async def 时，自动使用 anyio 驱动运行
+anyio_backend = "asyncio"
+
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
