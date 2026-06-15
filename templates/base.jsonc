@@ -34,19 +34,6 @@
         "rules": [
             {
                 "rule_set": [
-                    "blocklist"
-                ],
-                "action": "predefined",
-                "rcode": "NXDOMAIN",
-                "answer": [
-                    "adobe.io.  IN A  66.33.88.0",
-                    "adobe.com. IN A  67.33.88.0",
-                    "adobelogin.com. IN A  122.55.77.88",
-                    "cloudflare.net. IN A  122.55.77.80"
-                ]
-            },
-            {
-                "rule_set": [
                     "category-ads-all"
                 ],
                 "action": "reject"
@@ -146,30 +133,17 @@
         "auto_detect_interface": true,
         "final": "Proxy",
         "default_domain_resolver": {
-            "server": "ali",
-            "rewrite_ttl": 60,
-            "client_subnet": "114.114.114.114"
+            "server": "ali"
         },
         "rules": [
             {
-                "action": "sniff"
-            },
-            {
+                //dns with tls 无法sniff，无法分流，只能一刀切
+                //fallback 进传统dns,可以分流
                 "port": 853,
-                "outbound": "Proxy"
+                "action": "reject"
             },
             {
-                "rule_set": [
-                    "blocklist",
-                    "category-ads-all"
-                ],
-                "action": "reject",
-                "no_drop": true
-            },
-            {
-                //P2P没有意义走代理，反而增加延迟
-                "protocol": "bittorrent",
-                "outbound": "direct"
+                "action": "sniff"
             },
             {
                 "type": "logical",
@@ -185,30 +159,53 @@
                 "action": "hijack-dns"
             },
             {
+                "rule_set": [
+                    "category-ads-all"
+                ],
+                "action": "reject",
+                "no_drop": true
+            },
+            {
+                //P2P没有意义走代理，反而增加延迟
+                "protocol": "bittorrent",
+                "outbound": "direct"
+            },
+            {
+                "ip_is_private": true,
+                "action": "bypass",
+                "outbound": "direct"
+            },
+            {
+                "clash_mode": "direct",
+                "action": "bypass",
+                "outbound": "direct"
+            },
+            {
+                //2.
+                //把非国内的stun按住
+                //STUN 的唯一目的就是为了实现 P2P（点对点）连接。
+                //P2P走代理没有意义
+                //重新考虑，不要分流，要么开，要么关
                 "type": "logical",
                 "mode": "and",
                 "rules": [
+                    // {
+                    //     "rule_set": "geosite-cn",
+                    //     "invert": true
+                    // },
+                    // {
+                    //     "rule_set": "geoip-cn",
+                    //     "invert": true
+                    // },
                     {
                         "protocol": [
                             "quic",
                             "stun",
                             "dtls"
                         ]
-                    },
-                    {
-                        "rule_set": "geosite-cn",
-                        "invert": true
-                    },
-                    {
-                        "rule_set": "geoip-cn",
-                        "invert": true
                     }
                 ],
                 "action": "reject"
-            },
-            {
-                "clash_mode": "direct",
-                "outbound": "direct"
             },
             {
                 "clash_mode": "global",
@@ -228,40 +225,20 @@
                 "outbound": "direct"
             },
             {
-                "type": "logical",
-                "mode": "or",
-                "rules": [
-                    {
-                        "rule_set": [
-                            "geosite-geolocation-cn",
-                            "geoip-cn",
-                            "geosite-cn"
-                        ]
-                    },
-                    {
-                        "domain_keyword": [
-                            "aliyun",
-                            "alibabacloud",
-                            "valve"
-                        ]
-                    },
-                    {
-                        "domain": [
-                            "clash.razord.top",
-                            "yacd.metacubex.one",
-                            "yacd.haishan.me",
-                            "d.metacubex.one",
-                            "www.st.com",
-                            "nas.nebulaol.com"
-                        ]
-                    },
-                    {
-                        "ip_is_private": true
-                    },
-                    {
-                        "protocol": "ntp"
-                    }
+                "clash_mode": "global",
+                "outbound": "Proxy"
+            },
+            {
+                "rule_set": [
+                    "geosite-geolocation-cn",
+                    "geosite-cn"
                 ],
+                "action": "bypass",
+                "outbound": "direct"
+            },
+            {
+                "rule_set": "geoip-cn",
+                "action": "bypass",
                 "outbound": "direct"
             },
             {
@@ -276,8 +253,9 @@
                         "invert": true
                     }
                 ],
+                "action": "bypass",
                 "outbound": "direct"
-            }
+            },
         ],
         "rule_set": [
             {
@@ -314,13 +292,6 @@
                 "format": "binary",
                 "url": "https://fastly.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs",
                 "download_detour": "direct"
-            },
-            {
-                "tag": "blocklist",
-                "type": "remote",
-                "format": "binary",
-                "url": "https://raw.githubusercontent.com/qualvey/sing-rulesets/main/block-list.srs",
-                "download_detour": "Proxy"
             }
         ]
     }
