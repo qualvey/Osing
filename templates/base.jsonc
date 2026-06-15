@@ -43,11 +43,6 @@
                 "server": "google"
             },
             {
-                "clash_mode": "direct",
-                "server": "ali",
-                "disable_cache": false
-            },
-            {
                 "type": "logical",
                 "mode": "or",
                 "rules": [
@@ -56,34 +51,12 @@
                             "geosite-geolocation-cn",
                             "geosite-cn"
                         ]
-                    },
-                    {
-                        "domain_keyword": [
-                            "valve"
-                        ]
                     }
                 ],
-                "server": "ali",
-                "disable_cache": false
-            },
-            {
-                "type": "logical",
-                "mode": "and",
-                "rules": [
-                    {
-                        "rule_set": "geosite-geolocation-!cn",
-                        "invert": true
-                    },
-                    {
-                        "rule_set": "geoip-cn"
-                    }
-                ],
-                "server": "google",
-                "client_subnet": "114.114.114.114/24"
+                "server": "ali"
             }
         ],
         "strategy": "ipv4_only",
-        "disable_cache": true,
         "final": "google"
     },
     "inbounds": [
@@ -172,12 +145,10 @@
             },
             {
                 "ip_is_private": true,
-                "action": "bypass",
                 "outbound": "direct"
             },
             {
                 "clash_mode": "direct",
-                "action": "bypass",
                 "outbound": "direct"
             },
             {
@@ -238,7 +209,6 @@
             },
             {
                 "rule_set": "geoip-cn",
-                "action": "bypass",
                 "outbound": "direct"
             },
             {
@@ -253,7 +223,6 @@
                         "invert": true
                     }
                 ],
-                "action": "bypass",
                 "outbound": "direct"
             },
         ],
