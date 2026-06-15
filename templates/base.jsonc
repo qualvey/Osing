@@ -13,8 +13,7 @@
         },
         "cache_file": {
             "enabled": true,
-            "store_fakeip": false,
-            "store_rdrc": true
+            "store_fakeip": false
         }
     },
     "dns": {
@@ -57,6 +56,8 @@
             }
         ],
         "strategy": "ipv4_only",
+        "reverse_mapping": true,
+        "optimistic": true,
         "final": "google"
     },
     "inbounds": [
