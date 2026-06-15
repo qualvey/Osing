@@ -1,35 +1,17 @@
+
 {
-    "domain": "example.com",
-    "node_tag": "your/tag",
-    "firstJump": "the first server you want to connect to",
-    "client_base_dir": "/srv/configurations",
-    "email": "your_email@example.com",
-    "certificate_provider": "letsencrypt",
-    "cloudflare_key": "your_cloudflare_api_key",
-    "enable_exlude_package": true,
-    "transport": {
-        "enable": true,
-        "type": "httpupgrade"
+    "server": {
+        "domain": "ex.qualvay.com",
+        "node_tag": "server_tag",
+        "email": "mail@exm.com",
+        "certificate_provider": "letsencrypt",
+        "cf_key": "cloudflare_key"
     },
-    "reality": {
-        "enable": false,
-        "public_key": "_S5PE1iTZXZ2UmlmOoPEmib54zHv7zH7m9xbsA-gbBc",
-        "short_id": "0123456789abcdef",
-        "host": "www.baidu.com"
-    },
-    "client_transport_headers": {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
-        "Accept-Language": "en-US,en;q=0.9"
-    },
-    "server_transport_headers": {
-        "Server": "apache",
-        "X-Content-Type-Options": "nosniff"
+    "client": {
+        "client_path": "/srv/configurations",
+        "enable_exlude_package": true
     },
     "nodes": [
-        //先不用vless
-        // {
-        //     "type": "vless"
-        // },
         {
             "type": "tuic",
             "congestion_control": "bbr"
