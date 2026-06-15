@@ -3,9 +3,11 @@ import logging
 logger = logging.getLogger(__name__)
 import copy
 from Settings import settings
-host = settings.domain
-path = settings.transport_path
-node_tag= settings.node_tag
+config = settings.config
+ctx = settings.ctx
+host = config.server.domain
+# path = settings.transport_path
+node_tag= config.server.node_tag
 #TODO 应该在这里同时产生service 和 client 双端的节点json
 
 class ClientNode:
@@ -19,12 +21,12 @@ class ClientNode:
         self.tag: str = tag_val
         
     def generate(self):
-        nodes = copy.deepcopy(settings.nodes)
+        nodes = copy.deepcopy(config.nodes)
         for node in nodes:
-            if node.get("type") == "vless":
-                yield self._vless(node)
-            if node.get("type") == "tuic":
-                yield self._tuic(node)
+            if node.type == "vless":
+                yield self._vless(node.model_dump())
+            if node.type == "tuic":
+                yield self._tuic(node.model_dump())
         
     def _reality(self):
         return       {
@@ -57,7 +59,7 @@ class ClientNode:
                     "fingerprint": "chrome"
                 }
             }
-        base["server"] = settings.firstJump
+        base["server"] = host
         base["tag"] = node_tag +"vless"
         
         base["server_port"] = user_data.get("listen_port")        
@@ -108,7 +110,7 @@ class ClientNode:
             "server_name": host
         }
         user_data = self.user_data
-        base["server"] = settings.firstJump
+        base["server"] = host
         base["server_port"] = user_data.get("listen_port")
         base["uuid"]= user_data.get("uuid")
         

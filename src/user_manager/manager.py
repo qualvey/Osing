@@ -19,8 +19,11 @@ from Client import ClientManager
 from  Service import UserService
 
 from Settings import settings
-domain:str  = settings.domain
-transport_path = settings.transport_path
+
+config = settings.config
+ctx  = settings.ctx
+domain:str  = config.server.domain
+# transport_path = settings.transport_path
 
 class UserNotFoundError(Exception):
     """自定义业务异常：当数据库/缓存中找不到必须存在的用户时触发"""

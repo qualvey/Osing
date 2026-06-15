@@ -4,7 +4,9 @@ logger = logging.getLogger(__name__)
 import copy
 import socket
 from Settings import settings
-host = settings.domain
+config = settings.config
+ctx    = settings.ctx
+host = config.server.domain
 
 #TODO 应该在这里同时产生service 和 client 双端的节点json
 
@@ -18,12 +20,12 @@ class ServiceNode:
         self.tag: str = tag_val
         
     def generate(self):
-        nodes = copy.deepcopy(settings.nodes)
+        nodes = copy.deepcopy(config.nodes)
         for node in nodes:
-            if node.get("type") == "vless":
-                yield self._vless(node)
-            if node.get("type") == "tuic":
-                yield self._tuic(node)
+            if node.type == "vless":
+                yield self._vless(node.model_dump())
+            if node.type == "tuic":
+                yield self._tuic(node.model_dump())
                 
     def _get_available_port(self, raw_port) -> int:
         """获取 8000-10000 之间且未被占用的端口"""

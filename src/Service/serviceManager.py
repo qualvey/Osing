@@ -11,12 +11,14 @@ import logging
 from pathlib import Path
 import signal
 
+config = settings.config
+ctx = settings.ctx
 # from pydbus import SystemBus
 # from gi.repository import GLib
 logger = logging.getLogger(__name__)
-config_path =  Path(settings.server_config_path)
-domain = settings.domain
-transport_path = settings.transport_path
+config_path =  Path(config.server.config_path)
+domain = config.server.domain
+# transport_path = settings.transport_path
 tmp_path = "/tmp/sing-box-config.json"
 
 class UserService:
@@ -31,7 +33,7 @@ class UserService:
         from Settings import settings
         # 顺便确保它是个 Path 对象，方便后面调用 .with_suffix()
         from pathlib import Path
-        return Path(settings.server_config_path)
+        return Path(config.server.config_path)
 
     # 🌟 2. 动态备份文件路径
     @property
@@ -41,7 +43,7 @@ class UserService:
     #TODO 全新的服务器部署
     @staticmethod
     def init():
-        my_bak_path = settings.project_root / "config.json.bak"
+        my_bak_path = ctx.project_root / "config.json.bak"
         try:
             if config_path.exists():
                 shutil.copy2(config_path, my_bak_path)
@@ -52,13 +54,13 @@ class UserService:
             logger.error(f"❌ [Service] 备份主配置文件失败，放弃后续操作: {e}")
             raise e # 往外抛，阻止事务继续
         
-        template = settings.templates_dir / "server.json"
+        template = ctx.template_dir / "server.json"
         config = jstyleson.load(template.open("r", encoding="utf-8"))
         provider = config.get("certificate_providers")[0]
         provider["domain"] = [domain]
         provider["default_server_name"] = domain
-        provider["email"] = settings.email
-        provider["dns01_challenge"]["api_token"] = settings.cloudflare_key
+        provider["email"] = config.server.email
+        provider["dns01_challenge"]["api_token"] = config.server.cf_key
         logger.debug(f"Certificate provider config: {provider}")
         
         with open(tmp_path, "w", encoding="utf-8") as f:

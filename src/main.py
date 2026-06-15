@@ -28,12 +28,13 @@ from pathlib import Path
 import logging
 from aioconsole import ainput
 from Service.serviceManager import UserService
-
-domain:str  = settings.domain
-transport_path = settings.transport_path
+config = settings.config
+ctx = settings.ctx
+domain:str  = config.server.domain
+# transport_path = settings.transport_path
 
 CONFIG_PATH = "/etc/sing-box/config.json"
-ClientBasePath = settings.clientBasePath
+ClientBasePath = config.client.client_path
 BINARY_PATH = "/usr/bin/sing-box" # 建议写绝对路径，防止环境问题
 SERVICE_NAME = "sing-box.service"
 
@@ -101,7 +102,7 @@ def pad_string(s, width):
 
 def load_template(filename: str):
     # 1. 获取指向文件的“路径对象”
-    target = settings.templates_dir / filename
+    target = ctx.template_dir / filename
     
     # 2. 读取内容
     with open(target, "r", encoding="utf-8") as f:
@@ -300,8 +301,7 @@ async def main():
 
                 # 2. 调用精简后的 UserManager 组装厂
                 user = UserManager.new(name, comment=comment)
-                if user and user.save():
-                    logger.info(f"🎉 用户 {name} 全线配置成功！")
+                user.save()
                     
         case "refreshAll":
             users = db.get_all_users()
@@ -327,9 +327,9 @@ async def main():
             logger.info("初始化，将会:\n覆盖/etc/sing-box/config.json为初始模板")
             UserService.init()
             
-        case "modify":
-            pinyin_name = args.pinyin_name
-            await manager.modify(pinyin_name)
+        # case "modify":
+        #     pinyin_name = args.pinyin_name
+        #     await manager.modify(pinyin_name)
             
         case "sync-service":
             #从数据库读数据，写入服务端的config

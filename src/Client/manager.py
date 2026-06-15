@@ -8,6 +8,12 @@ import jstyleson
 import logging
 logger = logging.getLogger(__name__)
 from .ConfigEngine import ClientEgine
+config = settings.config
+ctx = settings.ctx
+base_path = config.client.client_path or "/srv/configrations/"
+exlude_package = config.client.enable_exlude_package
+template_path = ctx.template_dir
+
 EXCLUDE_PACKAGES = [
     "cmb.pb",
     "cn.gov.pbc.dcep",
@@ -80,7 +86,7 @@ WIFI_RULE = {
 
 class ClientManager:
     # 全局公共类变量：客户端配置的根目录
-    BASE_PATH_str = settings.clientBasePath if settings.clientBasePath else ("/srv/configrations/")
+    BASE_PATH_str = base_path 
     BASE_PATH = pathlib.Path(BASE_PATH_str).resolve()
     
     def __init__(self, user_data: Dict[str, Any]):
@@ -91,7 +97,8 @@ class ClientManager:
         self.user_data = user_data
         self.username: Optional[str] = user_data.get("name")
         self.node = ClientNode(user_data)
-        self.template = settings.templates_dir / "base.jsonc"
+        self.template = template_path / "base.jsonc"
+        logger.debug(f"{template_path}")
         self.engine = ClientEgine()
         # 你的设想非常对：每个用户有一个自己的文件夹（以唯一标识 tag 命名）
         # 如果没有 tag，就退一步用 name
@@ -127,7 +134,8 @@ class ClientManager:
                 config = jstyleson.load(f)
         except FileNotFoundError:
             logger.error(f"❌ 错误: 找不到配置文件 {self.template}")
-            return False
+            raise RuntimeError("base.jsonc 缺失，无法生成客户端配置") 
+        
         try:
         # 🎯 定点定向抓取，找不到会直接触发 StopIteration
             proxy_group = next(o for o in config["outbounds"] if o["tag"] == "Proxy")["outbounds"]
@@ -165,8 +173,8 @@ class ClientManager:
         self._Android()
         self._iOS()
         self._windows()
-
         return True
+  
 
     def _windows(self):
         try:
@@ -174,7 +182,7 @@ class ClientManager:
                 config = jstyleson.load(f)
         except FileNotFoundError:
             logger.error(f"❌ 错误: 找不到配置文件 {self.template}")
-            return False
+            raise RuntimeError()
         try:
 
         # 🎯 定点定向抓取，找不到会直接触发 StopIteration
@@ -210,7 +218,7 @@ class ClientManager:
                 config = jstyleson.load(f)
         except FileNotFoundError:
             logger.error(f"❌ 错误: 找不到配置文件 {self.template}")
-            return False
+            raise RuntimeError()
         try:
         # 🎯 定点定向抓取，找不到会直接触发 StopIteration
             proxy_group = next(o for o in config["outbounds"] if o["tag"] == "Proxy")["outbounds"]
@@ -232,7 +240,7 @@ class ClientManager:
                     logging.info("   [SFA] 已移除 auto_redirect")
                 
                 # 添加 exclude_package
-                if settings.enable_exlude_package:
+                if exlude_package:
                     tun["exclude_package"] = EXCLUDE_PACKAGES
                 logging.info(f"   [SFA] 已添加 exclude_package ({len(EXCLUDE_PACKAGES)} 个)")
 

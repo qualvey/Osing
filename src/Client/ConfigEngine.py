@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 from Settings import settings
 import copy
 BASE_DIR = "/srv/configurations"
-Enable_exlude_package = settings.enable_exlude_package
+config = settings.config
+ctx    = settings.ctx
+enable_exlude_package = config.client.enable_exlude_package
 # ==========================================
 # 1. 静态数据定义 (配置常量)
 # ==========================================
@@ -100,12 +102,14 @@ class ClientEgine:
                 logging.info("   [SFA] 已移除 auto_redirect")
             
             # 添加 exclude_package
-            if settings.enable_exlude_package:
+            if enable_exlude_package:
                 tun["exclude_package"] = EXCLUDE_PACKAGES
             logging.info(f"   [SFA] 已添加 exclude_package ({len(EXCLUDE_PACKAGES)} 个)")
 
         # 2. 添加 WiFi 规则
-        dns_rule = config.get("dns").get("rules")
+        dns = config.get("dns")
+        if dns:
+            dns_rule = dns.get("rules")
         try:
             # 直接通过 key 访问，如果键不存在会触发 KeyError
             route_rule = config["route"]["rules"]
