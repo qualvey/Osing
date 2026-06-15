@@ -317,8 +317,12 @@ async def main():
         case "refresh":
             logging.info(f"正在刷新用户配置: {args.username}")
             users = db.get_all_users_by_name(args.username[0])
+            if not users:
+                logger.error("no such user")
+                exit()
             
             for user_data in users:
+                logger.debug(user_data)
                 user =  UserManager.create_from_data(user_data)
                 assert user is not None, f"panic, 无法绑定用户 {args.username[0]}"
                 user.save()
