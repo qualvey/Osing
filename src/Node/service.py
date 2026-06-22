@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 import logging
 logger = logging.getLogger(__name__)
 import copy
@@ -8,8 +8,95 @@ config = settings.config
 ctx    = settings.ctx
 host = config.server.domain
 
-#TODO 应该在这里同时产生service 和 client 双端的节点json
 
+# ==================== 1. 用户上下文 ====================
+class UserContext:
+    """仅作为用户数据的载体，保证类型安全"""
+    def __init__(self, user_data: Dict[str, Any]):
+        self.user_data = user_data
+        
+        # 强类型安全保障
+        tag_val = user_data.get("tag")
+        uuid = user_data.get("uuid")
+        assert isinstance(tag_val, str), "panic tag must be str"
+        assert isinstance(uuid, str), "panic tag must be str"
+        
+        self.tag: str = tag_val
+        self.uuid: str = uuid
+        
+# ==================== 2. 端口管理器 ====================
+class PortManager:
+    """抽离端口分配逻辑，方便复用和做全局锁（如果需要）"""
+    @staticmethod
+    def is_port_in_use(port: int) -> bool:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(('127.0.0.1', port)) == 0
+
+    @classmethod
+    def get_available_port(cls, raw_port: Any) -> int:
+        try:
+            port = int(raw_port)
+        except (TypeError, ValueError):
+            port = 8000
+
+        if port > 10000:
+            port = 8000 + (port % 2001)
+        if port < 8000:
+            port = 8000
+
+        start_port = port
+        while cls.is_port_in_use(port):
+            port += 1
+            if port > 10000:
+                port = 8000
+            if port == start_port:
+                raise RuntimeError("🚨 CRITICAL PANIC: 8000-10000 之间的所有端口已被占满！")
+        return port
+    
+class BaseNode():
+    def __init__(self, node_config:Any):
+        self.config = copy.deepcopy(node_config)
+        self.tag = node_config["tag"]
+        self.port = PortManager.get_available_port(getattr(node_config, 'port', 8000))
+        
+    def _to_config(self, user: UserContext) -> Dict[str, Any]:
+        """子类实现：注入用户数据，生成最终的节点配置"""
+        raise NotImplementedError
+    def new(self,user: UserContext) -> BaseNode:
+        raise NotImplementedError
+    
+class Vlesst(BaseNode):
+    def __init__(self, node_config:Any):
+        super().__init__(node_config)
+        self.port = PortManager.get_available_port(getattr(node_config, 'port',8443))
+        self.tag = node_config.get("tag", "vlesst")
+        self.addr = node_config.get("listen", "127.0.0.01")
+        self.transport: Dict = node_config.get("trasport")
+        self.transport["host"] = host
+        self.users: List[UserContext] = []
+        
+    def new(self,user: UserContext):
+        self.json = self._to_config(user)
+        
+        return self
+    
+    def _to_config(self, user: UserContext) -> Dict[str, Any]:
+        server_users = []
+        # 在这里以节点为主体，把用户(user.tag 等)混合进去
+        for user in self.users:
+            server_users.append({
+                "name":user.tag,
+                "uuid": user.uuid
+                })
+        return {
+            "type": "vless",
+            "port": self.port,
+            "listen": self.addr,
+            "users": server_users, 
+            "tag": self.tag,
+            "transport": self.transport
+        } 
+        
 class ServiceNode:
     def __init__(self,user_data: Dict[str, Any]):
         self.user_data = user_data
