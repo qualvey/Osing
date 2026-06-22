@@ -6,7 +6,6 @@ from pydantic import BaseModel,model_validator, Field
 from dataclasses import dataclass
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class RuntimeContext:
     project_root: Path
@@ -42,14 +41,20 @@ class Config(BaseModel):
     nodes: list[Node] = Field(
         default_factory=list
     )
+    @property
+    def vless_nodes(self) -> list[Node]:
+        """【职责占领】外界想要 vless？我内部帮你循环好，绝不脏了外面的代码"""
+        return [node for node in self.nodes if node.type == "vless"]
+
+    @property
+    def tuic_nodes(self) -> list[Node]:
+        return [node for node in self.nodes if node.type == "tuic"]
+    
     @model_validator(mode="after")
     def validate_settings(self):
 
         return self
 
-'''
-
-'''
 from pathlib import Path
 import json_repair
 
@@ -69,6 +74,7 @@ def load_config(filename: str = "config.json") -> tuple[Config,RuntimeContext]:
     )
 
     return config,ctx
+
 class Settings:
     def __init__(self, config: Config, ctx: RuntimeContext):
         self.config = config
