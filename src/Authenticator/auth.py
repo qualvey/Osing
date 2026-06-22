@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Query, Request, status, Depends
 from fastapi.responses import FileResponse
-from database.sqlite import db
+from database import db
 from Settings import settings
 from Client.manager import ClientManager
 from fastapi import HTTPException, status
