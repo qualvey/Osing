@@ -133,6 +133,10 @@
                 "action": "reject"
             },
             {
+                "ip_version": 6,
+                "action": "reject"
+            },
+            {
                 "action": "sniff"
             },
             {
@@ -213,10 +217,6 @@
                 "outbound": "direct"
             },
             {
-                "clash_mode": "global",
-                "outbound": "Proxy"
-            },
-            {
                 "rule_set": [
                     "geosite-geolocation-cn",
                     "geosite-cn"
@@ -241,7 +241,7 @@
                     }
                 ],
                 "outbound": "direct"
-            },
+            }
         ],
         "rule_set": [
             {
@@ -276,7 +276,7 @@
                 "tag": "category-ads-all",
                 "type": "remote",
                 "format": "binary",
-                "url": "https://fastly.jsdelivr.net/gh/SagerNet/sing-geosite@rule-set/geosite-category-ads-all.srs"
+                "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs"
             }
         ]
     }
