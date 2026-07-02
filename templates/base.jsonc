@@ -18,10 +18,9 @@
     },
     "ntp": {
         "enabled": true,
-        "server": "time.apple.com",
+        "server": "time.cloudflare.com",
         "server_port": 123,
-        "interval": "30m",
-        "detour": "Proxy"
+        "interval": "30m"
     },
     "certificate": {
         "store": "mozilla"
