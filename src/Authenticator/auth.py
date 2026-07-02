@@ -97,7 +97,7 @@ def Which_file(ua: str) -> str:
     if "sfa" in ua_lower or "android" in ua_lower:
         match = re.search(r"SFA/([\d\.]+)", ua, re.IGNORECASE)
         if match and get_version(match.group(1)) > (1, 12, 0):
-            return "android.json"
+            return "sfa.json"
         return "sfa_1.11.json"
 
     # 策略 C: Linux 分支
